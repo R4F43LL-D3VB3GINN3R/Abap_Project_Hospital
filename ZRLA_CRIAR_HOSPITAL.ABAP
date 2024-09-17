@@ -1,4 +1,66 @@
 *&---------------------------------------------------------------------*
+*& Report ZRLA_CRIAR_HOSPITAL
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+report zrla_criar_hospital.
+
+include zrla_criar_hospital_top.
+include zrla_criar_hospital_screen.
+include zrla_criar_hospital_rot.
+
+at selection-screen.
+
+  "---------------
+  " PROCESSAMENTO
+  "---------------
+
+  "se a dropdown nao estiver vazia
+  if p_nomes is not initial.
+    perform fill_fields.
+  endif.
+
+  "se algum botao for pressionado...
+  if sy-ucomm eq 'INSERT' or
+     sy-ucomm eq 'EDIT' or
+     sy-ucomm eq 'INSERT' or
+     sy-ucomm eq 'READ'.
+    perform field_validations. "validacao de campos
+  endif.
+
+  "se algum destes botoes forem pressionados
+  if return_validation-rc eq 0.
+
+    "cria objeto de instancia
+    create object ol_hospital
+      exporting
+        id_hospital = id_hospital.
+    .
+
+    perform get_data. "preenche a estrutura
+
+    case sy-ucomm.
+      when 'INSERT'.
+        perform insert_hospital.                  "inserir
+      when 'EDIT'.
+        message 'BUTTOM EDIT PRESSED' type 'S'.   "editar
+      when 'DELETE'.
+        message 'BUTTOM DELETE PRESSED' type 'S'. "remover
+      when 'READ'.
+        message 'BUTTOM READ PRESSED' type 'S'.   "listar
+    endcase.
+  else.
+    message return_validation-mensagem type 'S' display like 'E'.
+    clear: return_validation-rc.
+  endif.
+
+*"------------------------------------------------------------------------------------------------------
+  "INICIALIZACAO DE DADOS
+
+initialization.
+  perform fill_dropdown_names. "enche a dropdown com os nomes dos hospitais.~
+
+*&---------------------------------------------------------------------*
 *& Include          ZRLA_CRIAR_HOSPITAL_TOP
 *&---------------------------------------------------------------------*
 
