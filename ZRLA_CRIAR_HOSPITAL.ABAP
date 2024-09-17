@@ -1,11 +1,6 @@
 *&---------------------------------------------------------------------*
-*& Report ZRLA_CRIAR_HOSPITAL
+*& Include          ZRLA_CRIAR_HOSPITAL_TOP
 *&---------------------------------------------------------------------*
-*&
-*&---------------------------------------------------------------------*
-report zrla_criar_hospital.
-
-tables: zhospitais. "tabela z de hospitais
 
 "------------------------------------------------------------------------------------------------------
 "VARIÁVEIS - ESTRUTURAS - TABELAS
@@ -19,15 +14,23 @@ data: result type zapr_result. "estrutura de retorno de mensagens
 
 data: return_validation type zapr_result. "flag de validacao de campos
 
-data: lv_spec type string, "especializacoes
+data: lv_spec  type string, "especializacoes
       it_specs type table of string. "especializacoes checadas.
+
+"tabela e estrutura da dropdown
+data: it_list type vrm_values,
+      ls_list like line of it_list.
+
+*&---------------------------------------------------------------------*
+*& Include          ZRLA_CRIAR_HOSPITAL_SCREEN
+*&---------------------------------------------------------------------*
 
 "------------------------------------------------------------------------------------------------------
 "SCREEN001
 
 "DROPDOWN DE PROCURA
 selection-screen: begin of block c1 with frame title text-008.
-  parameters: p_nomes type zhospitais-id_hospital as listbox visible length 25.
+parameters: p_nomes type zhospitais-id_hospital as listbox visible length 25.
 selection-screen: end of block c1.
 "CAMPOS DE INFORMACOES GERAIS
 selection-screen: begin of block a1 with frame title text-007.
@@ -42,22 +45,22 @@ parameters: p_nome type zhospitais-nome_hospital,                              "
 selection-screen: end of block a1.
 "ESPECIALIZACOES
 selection-screen: begin of block d1 with frame title text-010.
-  parameters: p_spec1  as checkbox, "Cardiologia
-              p_spec2  as checkbox, "Endocrinologia
-              p_spec3  as checkbox, "Neurologia
-              p_spec4  as checkbox, "Oncologia
-              p_spec5  as checkbox, "Gastroenterologia
-              p_spec6  as checkbox, "Pneumologia
-              p_spec7  as checkbox, "Nefrologia
-              p_spec8  as checkbox, "Reumatologia
-              p_spec9  as checkbox, "Infectologia
-              p_spec10 as checkbox, "Dermatologia
-              p_spec11 as checkbox. "Hematologia
+parameters: p_spec1  as checkbox, "Cardiologia
+            p_spec2  as checkbox, "Endocrinologia
+            p_spec3  as checkbox, "Neurologia
+            p_spec4  as checkbox, "Oncologia
+            p_spec5  as checkbox, "Gastroenterologia
+            p_spec6  as checkbox, "Pneumologia
+            p_spec7  as checkbox, "Nefrologia
+            p_spec8  as checkbox, "Reumatologia
+            p_spec9  as checkbox, "Infectologia
+            p_spec10 as checkbox, "Dermatologia
+            p_spec11 as checkbox. "Hematologia
 selection-screen: end of block d1.
 "INFORMACOES ADICIONAIS
 selection-screen: begin of block e1 with frame title text-009.
-  parameters: p_fndc type zhospitais-data_fundacao, "data de fundacao
-              p_dirt type zhospitais-diretor_resp.  "diretor responsavel
+parameters: p_fndc type zhospitais-data_fundacao, "data de fundacao
+            p_dirt type zhospitais-diretor_resp.  "diretor responsavel
 selection-screen: end of block e1.
 "PUSHBUTTONS
 selection-screen: begin of block b1 with frame title text-005.
@@ -67,48 +70,10 @@ selection-screen pushbutton 58(10) text-003 user-command delete.
 selection-screen pushbutton 71(10) text-004 user-command read.
 selection-screen: skip 1.
 selection-screen: end of block b1.
-"------------------------------------------------------------------------------------------------------
-"COMANDOS DE TELA DE SELEÇÃO
 
-at selection-screen.
-
-      "---------------
-      " PROCESSAMENTO
-      "---------------
-
-  "se algum botao for pressionado...
-  if sy-ucomm eq 'INSERT' or
-     sy-ucomm eq 'EDIT' or
-     sy-ucomm eq 'INSERT' or
-     sy-ucomm eq 'READ'.
-    perform field_validations. "validacao de campos
-  endif.
-
-  "se algum destes botoes forem pressionados
-  if return_validation-rc eq 0.
-
-    "cria objeto de instancia
-    create object ol_hospital
-      exporting
-        id_hospital = id_hospital.
-      .
-
-    perform get_data. "preenche a estrutura
-
-    case sy-ucomm.
-      when 'INSERT'.
-        perform insert_hospital.                  "inserir
-      when 'EDIT'.
-        message 'BUTTOM EDIT PRESSED' type 'S'.   "editar
-      when 'DELETE'.
-        message 'BUTTOM DELETE PRESSED' type 'S'. "remover
-      when 'READ'.
-        message 'BUTTOM READ PRESSED' type 'S'.   "listar
-    endcase.
-  else.
-    message return_validation-mensagem type 'S' display like 'E'.
-    clear: return_validation-rc.
-  endif.
+*&---------------------------------------------------------------------*
+*& Include          ZRLA_CRIAR_HOSPITAL_ROT
+*&---------------------------------------------------------------------*
 
 *"------------------------------------------------------------------------------------------------------
 *"ROTINAS
@@ -135,7 +100,7 @@ form field_validations.
     return_validation-rc = 1.
     return_validation-mensagem = | O campo Capacidade de Leitos deve ser preenchido com um valor válido e positivo. |.
     return.
-  elseif p_mail ne '@'.
+  elseif '@' cn p_mail.
     return_validation-rc = 1.
     return_validation-mensagem = | O campo Email deve conter @ no endereço. |.
     return.
@@ -143,6 +108,7 @@ form field_validations.
 
   perform get_especializacoes.
 
+  "se todas as checkboxes estiverem vazias...
   if lv_spec is initial.
     return_validation-rc = 1.
     return_validation-mensagem = | Prencha as informações sobre Especializações. |.
@@ -154,6 +120,7 @@ endform.
 form get_data.
 
   "estrutura recebe os valores dos campos preenchidos.
+  clear ls_hospital.
   ls_hospital-nome_hospital   = p_nome.
   ls_hospital-nif             = p_nifh.
   ls_hospital-morada          = p_mord.
@@ -177,6 +144,11 @@ form insert_hospital.
     importing
       e_result = result      " Mensagem
   ).
+
+  "limpa os dados
+  clear lv_spec.
+  clear ls_hospital.
+  free ol_hospital.
 
   if result-rc eq 0.
     message result-mensagem type 'S'.
@@ -230,4 +202,122 @@ form get_especializacoes.
     endif.
   endloop.
 
+  clear it_specs.
+
 endform.
+
+form fill_dropdown_names. "enche a dropdown com os nomes dos hospitais.
+
+  "estrutura com ids e nomes do hospital
+  types: begin of wa_ddown,
+           id_hospital   type zhospitais-id_hospital,
+           nome_hospital type zhospitais-nome_hospital,
+         end of wa_ddown.
+
+  "tabela e estrutura da estrutura types
+  data: it_ddown type table of wa_ddown with key id_hospital,
+        ls_ddown type wa_ddown.
+
+  "preenche os campos da tabela interna com id e nome
+  select * from zhospitais
+    into corresponding fields of table it_ddown.
+
+  if sy-subrc eq 0.
+
+    sort it_ddown by id_hospital.
+
+    data: id_char type char10.
+
+    "passa os dados da tabela para a tabela da dropdown
+    loop at it_ddown into ls_ddown.
+      clear ls_list.
+      id_char = ls_ddown-id_hospital.
+      ls_list-key = id_char.
+      ls_list-text = ls_ddown-nome_hospital.
+      append ls_list to it_list.
+      clear ls_ddown.
+    endloop.
+
+    "chama a funcao que preenche a dropdown
+    call function 'VRM_SET_VALUES'
+      exporting
+        id     = 'P_NOMES'
+        values = it_list.
+  endif.
+
+endform.
+
+form fill_fields.
+
+  data: dd_hospital type zhospitais, "estrutura da tabela
+        lv_id_hosp  type char10.     "id do hospital em caracteres
+
+  "itera sobre a dropdown
+  loop at it_list into ls_list.
+    "pega o id relacionado ao nome escolhido na dropdown
+    if ls_list-key eq p_nomes.
+      condense ls_list-key no-gaps. "remove os espaços
+      lv_id_hosp = ls_list-key.     "recebe o id sem espaços
+      dd_hospital-id_hospital = lv_id_hosp. "recebe o id
+      dd_hospital-nome_hospital = ls_list-text. "recebe o nome
+    endif.
+  endloop.
+
+  "procura a linha relacionada ao id
+  select single * from zhospitais
+    into dd_hospital
+    where id_hospital eq dd_hospital-id_hospital.
+
+  if sy-subrc eq 0.
+
+    "preenche os campos
+    p_nome = dd_hospital-nome_hospital.
+    p_nifh = dd_hospital-nif.
+    p_mord = dd_hospital-morada.
+    p_codp = dd_hospital-codigo_postal.
+    p_fone = dd_hospital-telefone.
+    p_mail = dd_hospital-email_contacto.
+    p_tipo = dd_hospital-tipo_hospital.
+    p_cama = dd_hospital-capacidade_cama.
+    p_fndc = dd_hospital-data_fundacao.
+    p_dirt = dd_hospital-diretor_resp.
+
+    "procura no campo de especialidades as strings
+    "se achar, marca a dropdown
+    if 'Cardiologia' co dd_hospital-especialidades.
+      p_spec1 = 'X'.
+    endif.
+    if 'Endocrinologia' co dd_hospital-especialidades.
+      p_spec2 = 'X'.
+    endif.
+    if 'Neurologia' co dd_hospital-especialidades.
+      p_spec3 = 'X'.
+    endif.
+    if 'Oncologia' co dd_hospital-especialidades.
+      p_spec4 = 'X'.
+    endif.
+    if 'Gastroenterologia' co dd_hospital-especialidades.
+      p_spec5 = 'X'.
+    endif.
+    if 'Pneumologia' co dd_hospital-especialidades.
+      p_spec6 = 'X'.
+    endif.
+    if 'Nefrologia' co dd_hospital-especialidades.
+      p_spec7 = 'X'.
+    endif.
+    if 'Reumatologia' co dd_hospital-especialidades.
+      p_spec8 = 'X'.
+    endif.
+    if 'Infectologia' co dd_hospital-especialidades.
+      p_spec9 = 'X'.
+    endif.
+    if 'Dermatologia' co dd_hospital-especialidades.
+      p_spec10 = 'X'.
+    endif.
+    if 'Hematologia' co dd_hospital-especialidades.
+      p_spec11 = 'X'.
+    endif.
+  endif.
+
+endform.
+
