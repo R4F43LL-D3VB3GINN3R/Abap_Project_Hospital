@@ -340,10 +340,6 @@ form get_especializacoes.
     endif.
   endloop.
 
-
-
-
-
   clear it_specs.
 
 endform.
