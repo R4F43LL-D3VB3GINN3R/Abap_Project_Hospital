@@ -12,18 +12,14 @@ include zrla_display_alv.
 
 at selection-screen.
 
-"------------------------------------------------------------------------------------------------------
-"COMANDOS DE TELA DE SELEÇÃO
+  check sy-dynnr = 100. "confere se é a tela 100 que está em atividade
+
+  "------------------------------------------------------------------------------------------------------
+  "COMANDOS DE TELA DE SELEÇÃO
 
   "se a dropdown nao estiver vazia
   if p_nomes is not initial and sy-ucomm ne 'EDIT' and sy-ucomm ne 'INSERT' and sy-ucomm ne 'READ'.
     perform fill_fields.
-  endif.
-
-  "se algum botao for pressionado...
-  if sy-ucomm eq 'INSERT' or
-     sy-ucomm eq 'EDIT'.
-    perform field_validations. "validacao de campos
   endif.
 
   "se algum destes botoes forem pressionados
@@ -43,7 +39,7 @@ at selection-screen.
       when 'EDIT'.
         perform update_hospital.   "editar
       when 'READ'.
-        perform display_hospitais. "exibe os hospitais em alv.
+        perform display_hospitais. "exibe os hospitais em alv.´
     endcase.
   else.
     message return_validation-mensagem type 'S' display like 'E'.
@@ -51,10 +47,13 @@ at selection-screen.
   endif.
 
 *"------------------------------------------------------------------------------------------------------
-"INICIALIZACAO DE DADOS
+  "INICIALIZACAO DE DADOS
 
 initialization.
   perform fill_dropdown_names. "enche a dropdown com os nomes dos hospitais.
+
+  tab1 = '@0U@' && 'Hospitais'.
+  tab2 = '@0U@' && 'Pacientes'.
 
 *&---------------------------------------------------------------------*
 *& Include          ZRLA_CRIAR_HOSPITAL_SCREEN
@@ -63,74 +62,90 @@ initialization.
 "------------------------------------------------------------------------------------------------------
 "SCREEN001
 
+"TABSTRIP BUTTONS
+selection-screen: function key 1.
+
+"TELAS QUE RECEBEM AS SUBTELAS
+selection-screen: begin of tabbed block tb1 for 40 lines.
+selection-screen: tab (20) tab1 user-command tab1 default screen 100, "TELA DE HOSPITAIS
+                  tab (20) tab2 user-command tab2 default screen 101. "TELA DE PACIENTES
+selection-screen: end of block tb1.
+
+
+"------------------------------------------------------------------------------------------------------
+"TELA DE HOSPITAIS
+
 "DROPDOWN DE PROCURA
+selection-screen: begin of screen 100 as subscreen.
+selection-screen: begin of block f1 with frame.
 selection-screen: begin of block c1 with frame title text-008.
 parameters: p_nomes type zhospitais-id_hospital as listbox visible length 25.
 selection-screen: end of block c1.
+
 "CAMPOS DE INFORMACOES GERAIS
 selection-screen: begin of block a1 with frame title text-007.
-parameters: p_nome    type zhospitais-nome_hospital,                              "nome
-            p_nifh    type zhospitais-nif default '000000000',                    "nif
-            p_mord    type zhospitais-morada,                                     "morada
-            p_codp    type zhospitais-codigo_postal default '00000000',           "codigo postal
-            p_fone    type zhospitais-telefone default '000000000',               "telefone
-            p_mail    type zhospitais-email_contacto,                             "email
-            p_tipo    type zhospitais-tipo_hospital as listbox visible length 25, "tipo de hospital
-            p_cama    type zhospitais-capacidade_cama.                            "capacidade de camas
+parameters: p_nome type zhospitais-nome_hospital,                              "nome
+            p_nifh type zhospitais-nif default '000000000',                    "nif
+            p_mord type zhospitais-morada,                                     "morada
+            p_codp type zhospitais-codigo_postal default '00000000',           "codigo postal
+            p_fone type zhospitais-telefone default '000000000',               "telefone
+            p_mail type zhospitais-email_contacto,                             "email
+            p_tipo type zhospitais-tipo_hospital as listbox visible length 25, "tipo de hospital
+            p_cama type zhospitais-capacidade_cama.                            "capacidade de camas
 selection-screen begin of line.
-  selection-screen position 30.
-  parameters p_act  radiobutton group grp1 default 'X'.                           "hospital em atividade
-  selection-screen comment 32(10) text-040.
-  selection-screen position 50.
-  parameters p_noact radiobutton group grp1.                                      "hospital inativo
-  selection-screen comment 52(10) text-041.
+selection-screen position 30.
+parameters p_act radiobutton group grp1 default 'X'.                           "hospital em atividade
+selection-screen comment 32(10) text-040.
+selection-screen position 50.
+parameters p_noact radiobutton group grp1.                                     "hospital inativo
+selection-screen comment 52(10) text-041.
 selection-screen end of line.
 selection-screen: end of block a1.
+
 "ESPECIALIZACOES
 selection-screen: begin of block d1 with frame title text-010.
 
 selection-screen begin of line.
-selection-screen position 2.
-  parameters p_spec1 as checkbox.
-  selection-screen comment 4(20) text-020.
-selection-screen position 27.
-  parameters p_spec2 as checkbox.
-  selection-screen comment 29(20) text-021.
-selection-screen position 52.
-  parameters p_spec3 as checkbox.
-  selection-screen comment 54(20) text-022.
-selection-screen position 77.
-  parameters p_spec4 as checkbox.
-  selection-screen comment 79(20) text-023.
+selection-screen position 1.
+parameters p_spec1 as checkbox.
+selection-screen comment 3(20) text-020.
+selection-screen position 24.
+parameters p_spec2 as checkbox.
+selection-screen comment 26(20) text-021.
+selection-screen position 47.
+parameters p_spec3 as checkbox.
+selection-screen comment 49(20) text-022.
+selection-screen position 70.
+parameters p_spec4 as checkbox.
+selection-screen comment 72(20) text-023.
 selection-screen end of line.
 
 selection-screen begin of line.
-selection-screen position 2.
-  parameters p_spec5 as checkbox.
-  selection-screen comment 4(20) text-024.
-selection-screen position 27.
-  parameters p_spec6 as checkbox.
-  selection-screen comment 29(20) text-025.
-selection-screen position 52.
-  parameters p_spec7 as checkbox.
-  selection-screen comment 54(20) text-026.
-selection-screen position 77.
-  parameters p_spec8 as checkbox.
-  selection-screen comment 79(20) text-027.
+selection-screen position 1.
+parameters p_spec5 as checkbox.
+selection-screen comment 3(20) text-024.
+selection-screen position 24.
+parameters p_spec6 as checkbox.
+selection-screen comment 26(20) text-025.
+selection-screen position 47.
+parameters p_spec7 as checkbox.
+selection-screen comment 49(20) text-026.
+selection-screen position 70.
+parameters p_spec8 as checkbox.
+selection-screen comment 72(20) text-027.
 selection-screen end of line.
 
 selection-screen begin of line.
-selection-screen position 2.
-  parameters p_spec9 as checkbox.
-  selection-screen comment 4(20) text-028.
-selection-screen position 27.
-  parameters p_spec10 as checkbox.
-  selection-screen comment 29(20) text-029.
-selection-screen position 52.
-  parameters p_spec11 as checkbox.
-  selection-screen comment 54(20) text-030.
+selection-screen position 1.
+parameters p_spec9 as checkbox.
+selection-screen comment 3(20) text-028.
+selection-screen position 24.
+parameters p_spec10 as checkbox.
+selection-screen comment 26(20) text-029.
+selection-screen position 47.
+parameters p_spec11 as checkbox.
+selection-screen comment 49(20) text-030.
 selection-screen end of line.
-
 selection-screen: end of block d1.
 
 "INFORMACOES ADICIONAIS
@@ -138,20 +153,31 @@ selection-screen: begin of block e1 with frame title text-009.
 parameters: p_fndc type zhospitais-data_fundacao, "data de fundacao
             p_dirt type zhospitais-diretor_resp.  "diretor responsavel
 selection-screen: end of block e1.
+
 "PUSHBUTTONS
 selection-screen: begin of block b1 with frame title text-005.
-selection-screen pushbutton 32(10) text-001 user-command insert.
-selection-screen pushbutton 45(10) text-002 user-command edit.
-selection-screen pushbutton 58(10) text-004 user-command read.
-selection-screen: skip 1.
+selection-screen pushbutton 25(15) text-001 user-command insert.
+selection-screen pushbutton 45(15) text-002 user-command edit.
+selection-screen pushbutton 65(15) text-004 user-command read.
 selection-screen: end of block b1.
+selection-screen: end of block f1.
+selection-screen: end of screen 100.
+
+"------------------------------------------------------------------------------------------------------
+"TELA DE PACIENTES
+
+selection-screen: begin of screen 101 as subscreen.
+parameters: pname type i.
+selection-screen: end of screen 101.
 
 *&---------------------------------------------------------------------*
 *& Include          ZRLA_CRIAR_HOSPITAL_TOP
 *&---------------------------------------------------------------------*
 
 "------------------------------------------------------------------------------------------------------
-"VARIÁVEIS - ESTRUTURAS - TABELAS
+"VARIÁVEIS - ESTRUTURAS - TABELAS - HOSPITAIS
+
+tables: zhospitais, sscrfields.
 
 data: ol_hospital type ref to zcl_hospital. "instacia da classe hospital
 
@@ -240,8 +266,6 @@ form field_validations.
     return.
   endif.
 
-  perform get_especializacoes.
-
   "se todas as checkboxes estiverem vazias...
   if lv_spec is initial.
     return_validation-rc = 1.
@@ -263,6 +287,10 @@ form get_data.
   ls_hospital-email_contacto  = p_mail.
   ls_hospital-tipo_hospital   = p_tipo.
   ls_hospital-capacidade_cama = p_cama.
+
+  clear lv_spec. "limpa a variavel antes de atribuir novos valores
+  perform get_especializacoes. "pega as especialidades
+
   ls_hospital-especialidades  = lv_spec.
   ls_hospital-data_fundacao   = p_fndc.
   ls_hospital-diretor_resp    = p_dirt.
@@ -315,6 +343,8 @@ form update_hospital.
   else.
     message result-mensagem type 'S' display like 'E'.
   endif.
+
+  free ol_hospital.
 
 endform.
 
@@ -658,3 +688,4 @@ form display_hospitais.
   clear ls_output.
 
 endform.
+
