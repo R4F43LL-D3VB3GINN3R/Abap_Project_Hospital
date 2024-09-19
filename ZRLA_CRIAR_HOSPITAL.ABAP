@@ -10,12 +10,14 @@ include zrla_criar_hospital_screen.
 include zrla_criar_hospital_rot.
 include zrla_display_alv.
 
+at selection-screen output.
+
 at selection-screen.
 
-  check sy-dynnr = 100. "confere se é a tela 100 que está em atividade
-
   "------------------------------------------------------------------------------------------------------
-  "COMANDOS DE TELA DE SELEÇÃO
+  "SCREEN 100
+
+  check sy-dynnr = 100. "confere se é a tela 100 que está em atividade
 
   "se a dropdown nao estiver vazia
   if p_nomes is not initial and sy-ucomm ne 'EDIT' and sy-ucomm ne 'INSERT' and sy-ucomm ne 'READ'.
@@ -40,6 +42,8 @@ at selection-screen.
         perform update_hospital.   "editar
       when 'READ'.
         perform display_hospitais. "exibe os hospitais em alv.´
+      when 'TAB2'.
+
     endcase.
   else.
     message return_validation-mensagem type 'S' display like 'E'.
@@ -54,6 +58,70 @@ initialization.
 
   tab1 = '@0U@' && 'Hospitais'.
   tab2 = '@0U@' && 'Pacientes'.
+
+*&---------------------------------------------------------------------*
+*& Include          ZRLA_CRIAR_HOSPITAL_TOP
+*&---------------------------------------------------------------------*
+
+"------------------------------------------------------------------------------------------------------
+"VARIÁVEIS - ESTRUTURAS - TABELAS - HOSPITAIS
+
+tables: zhospitais, sscrfields.
+
+data: ol_hospital type ref to zcl_hospital. "instacia da classe hospital
+
+data: ls_hospital type zrla_hospital,          "estrutura da tabela z de hospitais
+      id_hospital type zhospitais-id_hospital. "id do hospital
+
+data: result type zapr_result. "estrutura de retorno de mensagens
+
+data: return_validation type zapr_result. "flag de validacao de campos
+
+data: lv_spec  type string, "especializacoes
+      it_specs type table of string. "especializacoes checadas.
+
+"tabela e estrutura da dropdown
+data: it_list type vrm_values,
+      ls_list like line of it_list.
+
+"------------------------------------------------------------------------------------------------------
+"VARIÁVEIS - ESTRUTURAS - TABELAS - ALV
+
+"instancias alv
+  data: lo_alv           type ref to cl_salv_table,
+        lo_alv_functions type ref to cl_salv_functions,
+        lo_alv_columns   type ref to cl_salv_columns,
+        lo_alv_column    type ref to cl_salv_column,
+        lo_alv_display   type ref to cl_salv_display_settings.
+
+  data: color type lvc_s_colo. "cores
+
+  types: begin of wa_hospital,
+           id_hospital      type zhospitais-id_hospital,
+           nome_hospital    type zhospitais-nome_hospital,
+           nif              type zhospitais-nif,
+           morada           type zhospitais-morada,
+           codigo_postal    type zhospitais-codigo_postal,
+           telefone         type zhospitais-telefone,
+           email_contacto   type zhospitais-email_contacto,
+           tipo_hospital    type zhospitais-tipo_hospital,
+           capacidade_cama  type zhospitais-capacidade_cama,
+           especialidades   type zhospitais-especialidades,
+           data_fundacao    type zhospitais-data_fundacao,
+           diretor_resp     type zhospitais-diretor_resp,
+           data_criacao     type zhospitais-data_criacao,
+           data_modificacao type zhospitais-data_modificacao,
+           alterado_por     type zhospitais-alterado_por,
+           status_c         type icon_d,
+    end of wa_hospital.
+
+    data: it_output type table of wa_hospital,
+          ls_output type wa_hospital.
+
+    data: it_hospitais type table of zhospitais,
+          ls_hospital_alv type zrla_hospital.
+
+"------------------------------------------------------------------------------------------------------
 
 *&---------------------------------------------------------------------*
 *& Include          ZRLA_CRIAR_HOSPITAL_SCREEN
@@ -71,6 +139,21 @@ selection-screen: tab (20) tab1 user-command tab1 default screen 100, "TELA DE H
                   tab (20) tab2 user-command tab2 default screen 101. "TELA DE PACIENTES
 selection-screen: end of block tb1.
 
+include zrla_screen_hospital.  "selection screen: hospital
+
+"------------------------------------------------------------------------------------------------------
+"TELA DE PACIENTES
+
+"CAMPOS DE PESQUISA
+selection-screen: begin of screen 101 as subscreen.
+
+parameters: num1 type i.
+
+selection-screen: end of screen 101.
+
+*&---------------------------------------------------------------------*
+*& Include          ZRLA_SCREEN_HOSPITAL
+*&---------------------------------------------------------------------*
 
 "------------------------------------------------------------------------------------------------------
 "TELA DE HOSPITAIS
@@ -81,6 +164,25 @@ selection-screen: begin of block f1 with frame.
 selection-screen: begin of block c1 with frame title text-008.
 parameters: p_nomes type zhospitais-id_hospital as listbox visible length 25.
 selection-screen: end of block c1.
+
+"ZHOSPITAIS
+"-------------------------
+*ID_HOSPITAL      INT4
+*NOME_HOSPITAL    CHAR100
+*NIF              CHAR9
+*MORADA	          CHAR255
+*CODIGO_POSTAL    CHAR8
+*TELEFONE	        CHAR9
+*EMAIL_CONTACTO	  CHAR100
+*TIPO_HOSPITAL    ZTIPOH
+*CAPACIDADE_CAMA  INT4
+*ESPECIALIDADES	  CHAR255
+*DATA_FUNDACAO    DATS
+*DIRETOR_RESP	    CHAR100
+*DATA_CRIACAO	    DATS
+*DATA_MODIFICACAO	DATS
+*STATUS	          CHAR1
+"-------------------------
 
 "CAMPOS DE INFORMACOES GERAIS
 selection-screen: begin of block a1 with frame title text-007.
@@ -162,74 +264,6 @@ selection-screen pushbutton 65(15) text-004 user-command read.
 selection-screen: end of block b1.
 selection-screen: end of block f1.
 selection-screen: end of screen 100.
-
-"------------------------------------------------------------------------------------------------------
-"TELA DE PACIENTES
-
-selection-screen: begin of screen 101 as subscreen.
-parameters: pname type i.
-selection-screen: end of screen 101.
-
-*&---------------------------------------------------------------------*
-*& Include          ZRLA_CRIAR_HOSPITAL_TOP
-*&---------------------------------------------------------------------*
-
-"------------------------------------------------------------------------------------------------------
-"VARIÁVEIS - ESTRUTURAS - TABELAS - HOSPITAIS
-
-tables: zhospitais, sscrfields.
-
-data: ol_hospital type ref to zcl_hospital. "instacia da classe hospital
-
-data: ls_hospital type zrla_hospital,          "estrutura da tabela z de hospitais
-      id_hospital type zhospitais-id_hospital. "id do hospital
-
-data: result type zapr_result. "estrutura de retorno de mensagens
-
-data: return_validation type zapr_result. "flag de validacao de campos
-
-data: lv_spec  type string, "especializacoes
-      it_specs type table of string. "especializacoes checadas.
-
-"tabela e estrutura da dropdown
-data: it_list type vrm_values,
-      ls_list like line of it_list.
-
-"------------------------------------------------------------------------------------------------------
-"VARIÁVEIS - ESTRUTURAS - TABELAS - ALV
-
-"instancias alv
-  data: lo_alv           type ref to cl_salv_table,
-        lo_alv_functions type ref to cl_salv_functions,
-        lo_alv_columns   type ref to cl_salv_columns,
-        lo_alv_column    type ref to cl_salv_column,
-        lo_alv_display   type ref to cl_salv_display_settings.
-
-  data: color type lvc_s_colo. "cores
-
-  types: begin of wa_hospital,
-           id_hospital      type zhospitais-id_hospital,
-           nome_hospital    type zhospitais-nome_hospital,
-           nif              type zhospitais-nif,
-           morada           type zhospitais-morada,
-           codigo_postal    type zhospitais-codigo_postal,
-           telefone         type zhospitais-telefone,
-           email_contacto   type zhospitais-email_contacto,
-           tipo_hospital    type zhospitais-tipo_hospital,
-           capacidade_cama  type zhospitais-capacidade_cama,
-           especialidades   type zhospitais-especialidades,
-           data_fundacao    type zhospitais-data_fundacao,
-           diretor_resp     type zhospitais-diretor_resp,
-           data_criacao     type zhospitais-data_criacao,
-           data_modificacao type zhospitais-data_modificacao,
-           status_c         type icon_d,
-    end of wa_hospital.
-
-    data: it_output type table of wa_hospital,
-          ls_output type wa_hospital.
-
-    data: it_hospitais type table of zhospitais,
-          ls_hospital_alv type zrla_hospital.
 
 *&---------------------------------------------------------------------*
 *& Include          ZRLA_CRIAR_HOSPITAL_ROT
@@ -638,6 +672,16 @@ form build_alv_columns.
     value = if_salv_c_alignment=>centered
     ).
 
+    lo_alv_column ?= lo_alv_columns->get_column( 'ALTERADO_POR' ).
+    lo_alv_column->set_long_text( 'Alterado Por' ).
+    lo_alv_column->set_medium_text( '' ).
+    lo_alv_column->set_short_text( '' ).
+    lo_alv_column->set_output_length('15').
+    lo_alv_column->set_optimized( abap_true ).
+    lo_alv_column->set_alignment(
+    value = if_salv_c_alignment=>centered
+    ).
+
     lo_alv_column ?= lo_alv_columns->get_column( 'STATUS_C' ).
     lo_alv_column->set_long_text( 'Em Atividade' ).
     lo_alv_column->set_medium_text( '' ).
@@ -688,4 +732,5 @@ form display_hospitais.
   clear ls_output.
 
 endform.
+
 
