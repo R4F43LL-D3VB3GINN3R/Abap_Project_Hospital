@@ -1,20 +1,25 @@
-class zcl_hospital definition
+class ZCL_HOSPITAL definition
   public
   final
   create public .
 
-  public section.
+public section.
 
-    data hospital type zhospitais .
+  data HOSPITAL type ZHOSPITAIS .
 
-    methods constructor
-      importing
-        !id_hospital type zhospitais-id_hospital .
-    class-methods insert_hospital
-      importing
-        !hospital type zhospitais
-      exporting
-        !e_result type zapr_result .
+  methods CONSTRUCTOR
+    importing
+      !ID_HOSPITAL type ZHOSPITAIS-ID_HOSPITAL .
+  class-methods INSERT_HOSPITAL
+    importing
+      !HOSPITAL type ZHOSPITAIS
+    exporting
+      !E_RESULT type ZAPR_RESULT .
+  class-methods EDIT_HOSPITAL
+    importing
+      !HOSPITAL type ZRLA_HOSPITAL
+    exporting
+      !E_RESULT type ZAPR_RESULT .
   protected section.
   private section.
 
@@ -51,7 +56,7 @@ CLASS ZCL_HOSPITAL IMPLEMENTATION.
       where nif eq lv_nif_hospital.
 
     "se for achado o nif na base de dados
-    if sy-subrc eq 0.
+    if sy-subrc eq 1 or lv_nif_hospital eq '000000000'.
       e_result-rc = 1.
       e_result-mensagem = | O Hospital já existe no sistema. |.
     endif.
@@ -89,6 +94,66 @@ CLASS ZCL_HOSPITAL IMPLEMENTATION.
       hospital-diretor_resp     = 'unamed'.
       hospital-data_criacao     = '00000000'.
       hospital-data_modificacao = '00000000'.
+      hospital-alterado_por     = 'uname'.
+      hospital-status           = 'X'.
+    endif.
+
+  endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Static Public Method ZCL_HOSPITAL=>EDIT_HOSPITAL
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] HOSPITAL                       TYPE        ZRLA_HOSPITAL
+* | [<---] E_RESULT                       TYPE        ZAPR_RESULT
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  method edit_hospital.
+
+    data: id_hosp type zhospitais-id_hospital,            "id do hospital
+          ls_hosp type zhospitais,                        "estrutura do hospital
+          data_criacao_hosp type zhospitais-data_criacao, "data_criacao
+          nif_hosp type zhospitais-nif.                   "nif
+
+    "procura o id do hospital e a data de criacao do mesmo
+    select single id_hospital
+                  data_criacao
+                  nif
+      from zhospitais
+      into ( id_hosp, data_criacao_hosp, nif_hosp )
+      where nif eq hospital-nif.
+
+    "metodo para validar se hospital existe.
+    zcl_hospital=>check_hospital(
+      exporting
+        nif_hospital = nif_hosp         " Caractere 9
+      importing
+        e_result     = e_result         " Estrutura de resultados de operações
+    ).
+
+    "se nao for encontrado
+    if sy-subrc ne 0.
+      e_result-rc = sy-subrc.
+      e_result-mensagem = | O Hospital { hospital-nome_hospital } não existe no cadasttro. |.
+      return.
+    else.
+      ls_hosp = hospital. "estrutura recebe o valor da estrutura
+      ls_hosp-id_hospital = id_hosp. "recebe o id obtido da consulta.
+      ls_hosp-data_criacao = data_criacao_hosp. "recebe a data de criacao
+      ls_hosp-data_modificacao = sy-datum. "atualiza a data de modificacao
+      ls_hosp-status = hospital-status. "recebe o status
+      ls_hosp-alterado_por = sy-uname. "recebe o nome no sistema
+    endif.
+
+    update zhospitais from ls_hosp. "atualiza o hospital
+
+    if sy-subrc ne 0.
+      e_result-rc = sy-subrc.
+      e_result-mensagem = | Não foi possível atualizar as informações do Hospital { hospital-nome_hospital }. |.
+      return.
+    else.
+      e_result-rc = sy-subrc.
+      e_result-mensagem = | As informações do Hospital { hospital-nome_hospital } foram atualizadas. |.
+      return.
     endif.
 
   endmethod.
@@ -139,6 +204,7 @@ CLASS ZCL_HOSPITAL IMPLEMENTATION.
       ls_hospital-id_hospital      = zcl_hospital=>get_next( ). "recebe o auto incremento do id
       ls_hospital-data_criacao     = sy-datum.                  "recebe a data de hoje
       ls_hospital-data_modificacao = sy-datum.                  "recebe a data de hoje
+      ls_hospital-alterado_por     = sy-uname.                  "recebe username
 
       insert zhospitais from ls_hospital. "insere a estrutura na base de dados
       clear ls_hospital.
