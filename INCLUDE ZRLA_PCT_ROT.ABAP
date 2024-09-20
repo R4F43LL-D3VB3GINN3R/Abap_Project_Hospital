@@ -5,6 +5,74 @@
 "------------------------------------------------------------------------------------------------------
 "ROTINAS
 
+form insert_paciente.
+
+  "Método para cadastrar pacientes
+  ol_paciente->insert_paciente(
+    exporting
+      paciente  = ls_paciente
+      contactos = ls_contactos
+      docs      = ls_docs
+      enderecos = ls_enderecos
+      info      = ls_info
+    importing
+      e_result  = result_p
+  ).
+
+  if result_p-rc ne 0.
+    message result_p-mensagem type 'E' display like 'S'.
+  else.
+    message result_p-mensagem type 'S'.
+  endif.
+
+endform.
+
+form get_pct_data.
+
+  "preenche as estruturas com os valores dos campos.
+  clear ls_paciente.
+  ls_paciente-id_hospital          = p_nomesh.
+  ls_paciente-nome_paciente        = p_nomep.
+  ls_paciente-data_nascimento      = p_datanp.
+  ls_paciente-sexo                 = p_sexop.
+  ls_paciente-estado_civil         = p_estcv.
+
+  clear ls_contactos.
+  ls_contactos-telefone_principal  = p_tel1.
+  ls_contactos-telefone_secundario = p_tel2.
+  ls_contactos-email_paciente      = p_mailp.
+  ls_contactos-contacto_emergencia = p_ct_em.
+  ls_contactos-nome_contacto_e     = p_nm_em.
+
+  clear ls_docs.
+  ls_docs-nif = p_nifp.
+  ls_docs-cartao_cidadao           = p_cc.
+  ls_docs-numero_utente            = p_utente.
+  ls_docs-subsistema_saude         = p_sub_ss.
+  ls_docs-numero_seguro            = p_nsecp.
+  ls_docs-validade_seguro          = p_valsec.
+
+  clear ls_enderecos.
+  ls_enderecos-morada_paciente     = p_mordp.
+  ls_enderecos-codigo_postal       = p_codpst.
+  ls_enderecos-concelho            = p_cclh.
+  ls_enderecos-nacionalidade       = p_nacio.
+
+  clear ls_info.
+  ls_info-peso                     = p_peso.
+  ls_info-altura                   = p_alt.
+  ls_info-data_inscricao           = p_dt_ins.
+  ls_info-ultima_consulta          = p_ultc.
+  ls_info-tipo_sangue              = p_tps.
+  ls_info-alergias                 = p_alrg.
+  ls_info-doencas_cronicas         = p_dncc.
+  ls_info-medicacao_atual          = p_medc.
+  ls_info-historico_cirurgico      = p_hstc.
+  ls_info-habitos_drogas           = p_hbtd.
+  ls_info-observacoes              = p_obsp.
+
+endform.
+
 form field_pct_validations.
 
   "se o campo sexo nao for preenchido corretamente...
@@ -26,10 +94,12 @@ form field_pct_validations.
     return_validation_p-rc = 1.
     return_validation_p-mensagem = | O campo Telefone deve respeitar a quantidade de 9 dígitos. |.
     return.
+  "se o cartao cidadao nao tiver 9 digitos...
   elseif strlen( p_cc ) ne 9.
     return_validation_p-rc = 1.
     return_validation_p-mensagem = | O campo Número do Cartão Cidadão deve respeitar a quantidade de 9 dígitos. |.
     return.
+  "se o numero do utente nao tiver 9 digitos...
   elseif strlen( p_utente ) ne 9.
     return_validation_p-rc = 1.
     return_validation_p-mensagem = | O campo Número do Utente deve respeitar a quantidade de 9 dígitos. |.
