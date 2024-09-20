@@ -58,13 +58,56 @@ class zcl_paciente definition
         !id_paciente type zpacientes-id_paciente
       exceptions
         invalid_pct .
+    methods insert_paciente
+      importing
+        !paciente  type zpacientes
+        !contactos type zpac_contactos
+        !docs      type zpac_docs
+        !enderecos type zpac_enderecos
+        !info      type zpac_infopac
+      exporting
+        !e_result  type zapr_result .
   protected section.
   private section.
-ENDCLASS.
+
+    class-methods get_next
+      returning
+        value(id_pct) type zpacientes-id_paciente .
+
+    class-methods check_paciente
+      importing
+        !id_pct   type zpacientes-id_paciente
+      exporting
+        !e_result type zapr_result .
+endclass.
 
 
 
-CLASS ZCL_PACIENTE IMPLEMENTATION.
+class zcl_paciente implementation.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Static Private Method ZCL_PACIENTE=>CHECK_PACIENTE
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] ID_PCT                         TYPE        ZPACIENTES-ID_PACIENTE
+* | [<---] E_RESULT                       TYPE        ZAPR_RESULT
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  method check_paciente.
+
+    data id_paciente type zpacientes-id_paciente.
+
+    "verifica se o paciente existe.
+    select single id_paciente
+      from zpacientes
+      into id_paciente
+      where id_paciente eq id_pct.
+
+    if sy-subrc ne 0.
+      e_result-rc = 1.
+      e_result-mensagem = | Paciente não existe no sistema |.
+    endif.
+
+  endmethod.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
@@ -98,7 +141,7 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
     select single * from zpac_infopac   into info      where id_paciente eq id_paciente.
 
     "preenche a estrutura personalizada do paciente
-    SELECT SINGLE
+    select single
        p~id_paciente,
        p~id_hospital,
        c~id_contacto,
@@ -136,14 +179,182 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
        i~observacoes,
        p~data_alteracao,
        p~alterado_por
-     FROM zpacientes AS p
-     INNER JOIN zpac_contactos AS c ON p~id_paciente = c~id_paciente
-     INNER JOIN zpac_docs      AS d ON p~id_paciente = d~id_paciente
-     INNER JOIN zpac_enderecos AS e ON p~id_paciente = e~id_paciente
-     INNER JOIN zpac_infopac   AS i ON p~id_paciente = i~id_paciente
-     INTO CORRESPONDING FIELDS OF @ls_pct
-     WHERE p~id_paciente = @id_paciente.
-
+     from zpacientes as p
+     inner join zpac_contactos as c on p~id_paciente = c~id_paciente
+     inner join zpac_docs      as d on p~id_paciente = d~id_paciente
+     inner join zpac_enderecos as e on p~id_paciente = e~id_paciente
+     inner join zpac_infopac   as i on p~id_paciente = i~id_paciente
+     into corresponding fields of @ls_pct
+     where p~id_paciente = @id_paciente.
 
   endmethod.
-ENDCLASS.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Static Private Method ZCL_PACIENTE=>GET_NEXT
+* +-------------------------------------------------------------------------------------------------+
+* | [<-()] ID_PCT                         TYPE        ZPACIENTES-ID_PACIENTE
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  method get_next.
+
+    "auto incremento do id do hospital
+    select max( id_paciente )
+      from zpacientes
+      into id_pct.
+
+    "se houver dados retornados...
+    if sy-subrc eq 0.
+      add 1 to id_pct. "incrementa o id
+    else.
+      id_pct = 1. "define o id como o primeiro
+    endif.
+
+  endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Instance Public Method ZCL_PACIENTE->INSERT_PACIENTE
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] PACIENTE                       TYPE        ZPACIENTES
+* | [--->] CONTACTOS                      TYPE        ZPAC_CONTACTOS
+* | [--->] DOCS                           TYPE        ZPAC_DOCS
+* | [--->] ENDERECOS                      TYPE        ZPAC_ENDERECOS
+* | [--->] INFO                           TYPE        ZPAC_INFOPAC
+* | [<---] E_RESULT                       TYPE        ZAPR_RESULT
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  method insert_paciente.
+
+    "estruturas para receber os valores das estruturas enviadas como parametro
+    data: ls_paciente  type zpacientes,
+          ls_contactos type zpac_contactos,
+          ls_docs      type zpac_docs,
+          ls_enderecos type zpac_enderecos,
+          ls_info      type zpac_infopac.
+
+    "preenche as estruturas
+    ls_paciente  = paciente.
+    ls_contactos = contactos.
+    ls_docs      = docs.
+    ls_enderecos = enderecos.
+    ls_info      = info.
+
+    "verifica se alguma das estruturas estao vazias...
+    if ls_paciente  is initial or
+       ls_contactos is initial or
+       ls_docs      is initial or
+       ls_enderecos is initial or
+       ls_info      is initial.
+      e_result-rc = 1.
+      e_result-mensagem = | Dados necessários faltam para realizar a operação de cadastro |.
+      return.
+    endif.
+
+    "verifica se o paciente existe
+    zcl_paciente=>check_paciente(
+      exporting
+        id_pct   = ls_paciente-id_paciente
+      importing
+        e_result = e_result
+    ).
+
+    "se nao existir
+    if e_result-rc eq 1.
+      e_result-rc = 1.
+      e_result-mensagem = | O Paciente não pode ser cadastrado porque não existe id com o número { ls_paciente-id_paciente } |.
+      return.
+    endif.
+
+    "preenche estruturas individualmente.
+    ls_paciente-id_paciente    = zcl_paciente=>get_next( ).
+    ls_paciente-alterado_por   = sy-uname.
+    ls_paciente-data_alteracao = sy-datum.
+
+    "verifica o ultimo id inserido na tabela
+    select max( id_contacto ) from zpac_contactos into ls_contactos-id_contacto.
+
+    if sy-subrc eq 0.
+      add 1 to ls_contactos-id_contacto.
+      ls_contactos-id_paciente    = ls_paciente-id_paciente.
+      ls_contactos-alterado_por   = sy-uname.
+      ls_contactos-data_alteracao = sy-datum.
+    else.
+      e_result-rc = sy-subrc.
+      e_result-mensagem = | Houve um problema com a obtenção dos dados referente aos contactos do paciente  { ls_paciente-nome_paciente } |.
+      return.
+    endif.
+
+    "verifica o ultimo id inserido na tabela
+    select max( id_documento ) from zpac_docs into ls_docs-id_documento.
+
+    if sy-subrc eq 0.
+      add 1 to ls_docs-id_documento.
+      ls_docs-id_paciente    = ls_paciente-id_paciente.
+      ls_docs-alterado_por   = sy-uname.
+      ls_docs-data_alteracao = sy-datum.
+    else.
+      e_result-rc = sy-subrc.
+      e_result-mensagem = | Houve um problema com a obtenção dos dados referente aos documentos do paciente  { ls_paciente-nome_paciente } |.
+      return.
+    endif.
+
+    "verifica o ultimo id inserido na tabela
+    select max( id_localizacao ) from zpac_enderecos into ls_enderecos-id_localizacao.
+
+    if sy-subrc eq 0.
+      add 1 to ls_enderecos-id_localizacao.
+      ls_enderecos-id_paciente    = ls_paciente-id_paciente.
+      ls_enderecos-alterado_por   = sy-uname.
+      ls_enderecos-data_alteracao = sy-datum.
+    else.
+      e_result-rc = sy-subrc.
+      e_result-mensagem = | Houve um problema com a obtenção dos dados referente ao endereço do paciente  { ls_paciente-nome_paciente } |.
+      return.
+    endif.
+
+    "verifica o ultimo id inserido na tabela
+    select max( id_info_paciente ) from zpac_infopac into ls_info-id_info_paciente.
+
+    if sy-subrc eq 0.
+      add 1 to ls_info-id_info_paciente.
+      ls_info-id_paciente    = ls_paciente-id_paciente.
+      ls_info-alterado_por   = sy-uname.
+      ls_info-data_alteracao = sy-datum.
+    else.
+      e_result-rc = sy-subrc.
+      e_result-mensagem = | Houve um problema com a obtenção dos dados referente às informações do paciente  { ls_paciente-nome_paciente } |.
+      return.
+    endif.
+
+    "preenche todas as tabelas referentes ao paciente
+    insert zpacientes from ls_paciente.
+    if sy-subrc eq 0.
+      insert zpac_contactos from ls_contactos.
+      if sy-subrc eq 0.
+        insert zpac_docs from ls_docs.
+        if sy-subrc eq 0.
+          insert zpac_enderecos from ls_enderecos.
+          if sy-subrc eq 0.
+            insert zpac_infopac from ls_info.
+          else.
+            rollback work.
+          endif.
+          rollback work.
+        endif.
+        rollback work.
+      endif.
+      rollback work.
+    endif.
+
+    "limpa a estrutura
+    clear: ls_paciente, ls_contactos, ls_docs, ls_enderecos, ls_info.
+
+    if sy-subrc eq 0.
+      e_result-rc = sy-subrc.
+      e_result-mensagem = | O Paciente foi cadastrado com sucesso. |.
+    else.
+      e_result-rc = sy-subrc.
+      e_result-mensagem = | Não foi possível cadastrar o Paciente. |.
+    endif.
+
+  endmethod.
+endclass.
