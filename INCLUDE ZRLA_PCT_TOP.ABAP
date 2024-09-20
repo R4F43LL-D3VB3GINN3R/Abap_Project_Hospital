@@ -10,8 +10,8 @@ tables: zpacientes, zpac_contactos, zpac_docs, zpac_enderecos, zpac_infopac.
 
 data: ol_paciente type ref to zcl_paciente. "instacia da classe paciente
 
-data: ls_paciente  type zpacientes,             "estrutura da tabela z de hospitais
-      ls_contactor type zpac_contactos,
+data: ls_paciente  type zpacientes,
+      ls_contactos type zpac_contactos,
       ls_docs      type zpac_docs,
       ls_enderecos type zpac_enderecos,
       ls_info      type zpac_infopac,
