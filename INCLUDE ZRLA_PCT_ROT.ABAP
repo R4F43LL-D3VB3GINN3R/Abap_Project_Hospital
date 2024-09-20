@@ -7,16 +7,34 @@
 
 form insert_paciente.
 
+  "recebe o id da dropdown de hospitais.
+  data: id_hosp type zhospitais-id_hospital.
+  id_hosp = p_nomesh.
+  
+  "cria objetos de classe
+  create object ol_hospital
+    exporting
+      id_hospital = id_hosp.
+    .
+  create object ol_paciente
+    exporting
+      id_paciente = 0                  " Id do Paciente
+    exceptions
+      invalid_pct = 1                " Paciente Inválido
+      others      = 2
+    .
+
   "Método para cadastrar pacientes
   ol_paciente->insert_paciente(
     exporting
-      paciente  = ls_paciente
-      contactos = ls_contactos
-      docs      = ls_docs
-      enderecos = ls_enderecos
-      info      = ls_info
+      id_hospital = id_hosp
+      paciente    = ls_paciente
+      contactos   = ls_contactos
+      docs        = ls_docs
+      enderecos   = ls_enderecos
+      info        = ls_info
     importing
-      e_result  = result_p
+      e_result    = result_p
   ).
 
   if result_p-rc ne 0.
@@ -31,7 +49,6 @@ form get_pct_data.
 
   "preenche as estruturas com os valores dos campos.
   clear ls_paciente.
-  ls_paciente-id_hospital          = p_nomesh.
   ls_paciente-nome_paciente        = p_nomep.
   ls_paciente-data_nascimento      = p_datanp.
   ls_paciente-sexo                 = p_sexop.
@@ -75,36 +92,36 @@ endform.
 
 form field_pct_validations.
 
-  "se o campo sexo nao for preenchido corretamente...
-  if p_sexop ne 'M' and p_sexop ne 'F'.
-    return_validation_p-rc = 1.
-    return_validation_p-mensagem = | Escolha M-> Masculino ou F-> Feminino. |.
-    return.
-  elseif '@' cn p_mailp.
-    return_validation_p-rc = 1.
-    return_validation_p-mensagem = | O campo Email deve conter @ no endereço. |.
-    return.
-  "se o codigo postal nao tiver 8 digitos...
-  elseif strlen( p_codpst ) ne 8.
-    return_validation_p-rc = 1.
-    return_validation_p-mensagem = | O campo Código Postal deve respeitar a quantidade de 8 dígitos. |.
-    return.
-  "se o telefone nao tiver 9 digitos...
-  elseif strlen( p_tel1 ) ne 9 or strlen( p_tel2 ) ne 9 or strlen( p_ct_em ) ne 9.
-    return_validation_p-rc = 1.
-    return_validation_p-mensagem = | O campo Telefone deve respeitar a quantidade de 9 dígitos. |.
-    return.
-  "se o cartao cidadao nao tiver 9 digitos...
-  elseif strlen( p_cc ) ne 9.
-    return_validation_p-rc = 1.
-    return_validation_p-mensagem = | O campo Número do Cartão Cidadão deve respeitar a quantidade de 9 dígitos. |.
-    return.
-  "se o numero do utente nao tiver 9 digitos...
-  elseif strlen( p_utente ) ne 9.
-    return_validation_p-rc = 1.
-    return_validation_p-mensagem = | O campo Número do Utente deve respeitar a quantidade de 9 dígitos. |.
-    return.
-  endif.
+*  "se o campo sexo nao for preenchido corretamente...
+*  if p_sexop ne 'M' and p_sexop ne 'F'.
+*    return_validation_p-rc = 1.
+*    return_validation_p-mensagem = | Escolha M-> Masculino ou F-> Feminino. |.
+*    return.
+*  elseif '@' cn p_mailp.
+*    return_validation_p-rc = 1.
+*    return_validation_p-mensagem = | O campo Email deve conter @ no endereço. |.
+*    return.
+*  "se o codigo postal nao tiver 8 digitos...
+*  elseif strlen( p_codpst ) ne 8.
+*    return_validation_p-rc = 1.
+*    return_validation_p-mensagem = | O campo Código Postal deve respeitar a quantidade de 8 dígitos. |.
+*    return.
+*  "se o telefone nao tiver 9 digitos...
+*  elseif strlen( p_tel1 ) ne 9 or strlen( p_tel2 ) ne 9 or strlen( p_ct_em ) ne 9.
+*    return_validation_p-rc = 1.
+*    return_validation_p-mensagem = | O campo Telefone deve respeitar a quantidade de 9 dígitos. |.
+*    return.
+*  "se o cartao cidadao nao tiver 9 digitos...
+*  elseif strlen( p_cc ) ne 9.
+*    return_validation_p-rc = 1.
+*    return_validation_p-mensagem = | O campo Número do Cartão Cidadão deve respeitar a quantidade de 9 dígitos. |.
+*    return.
+*  "se o numero do utente nao tiver 9 digitos...
+*  elseif strlen( p_utente ) ne 9.
+*    return_validation_p-rc = 1.
+*    return_validation_p-mensagem = | O campo Número do Utente deve respeitar a quantidade de 9 dígitos. |.
+*    return.
+*  endif.
 
 endform.
 
