@@ -1,11 +1,12 @@
-class zcl_paciente definition
+class ZCL_PACIENTE definition
   public
   final
   create public .
 
-  public section.
+public section.
 
-    types: begin of wa_pct,
+  types:
+    begin of wa_pct,
              id_paciente         type zpacientes-id_paciente,
              id_hospital         type zpacientes-id_hospital,
              id_contacto         type zpac_contactos-id_contacto,
@@ -43,31 +44,32 @@ class zcl_paciente definition
              observacoes         type zpac_infopac-observacoes,
              data_alteracao      type zpacientes-data_alteracao,
              alterado_por        type zpacientes-alterado_por,
-           end of wa_pct.
+           end of wa_pct .
 
-    data: paciente  type zpacientes,
-          contactos type zpac_contactos,
-          docs      type zpac_docs,
-          enderecos type zpac_enderecos,
-          info      type zpac_infopac,
-          it_pct    type table of wa_pct,
-          ls_pct    type wa_pct.
+  data PACIENTE type ZPACIENTES .
+  data CONTACTOS type ZPAC_CONTACTOS .
+  data DOCS type ZPAC_DOCS .
+  data ENDERECOS type ZPAC_ENDERECOS .
+  data INFO type ZPAC_INFOPAC .
+  data:
+    it_pct    type table of wa_pct .
+  data LS_PCT type WA_PCT .
 
-    methods constructor
-      importing
-        !id_paciente type zpacientes-id_paciente
-      exceptions
-        invalid_pct .
-    methods insert_paciente
-      importing
-        !id_hospital type zhospitais-id_hospital
-        !paciente    type zpacientes
-        !contactos   type zpac_contactos
-        !docs        type zpac_docs
-        !enderecos   type zpac_enderecos
-        !info        type zpac_infopac
-      exporting
-        !e_result  type zapr_result .
+  methods CONSTRUCTOR
+    importing
+      !ID_PACIENTE type ZPACIENTES-ID_PACIENTE
+    exceptions
+      INVALID_PCT .
+  class-methods INSERT_PACIENTE
+    importing
+      !ID_HOSPITAL type ZHOSPITAIS-ID_HOSPITAL
+      !PACIENTE type ZPACIENTES
+      !CONTACTOS type ZPAC_CONTACTOS
+      !DOCS type ZPAC_DOCS
+      !ENDERECOS type ZPAC_ENDERECOS
+      !INFO type ZPAC_INFOPAC
+    exporting
+      !E_RESULT type ZAPR_RESULT .
   protected section.
   private section.
 
@@ -128,12 +130,6 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
     select single * from zpacientes
       into paciente
       where id_paciente eq id_paciente.
-
-    "retorna a excessao caso nao tenha achado a linha
-    if sy-subrc ne 0.
-      raise invalid_pct.
-      return.
-    endif.
 
     "seleciona todas as informacoes adjascentes ao paciente.
     select single * from zpac_contactos into contactos where id_paciente eq id_paciente.
@@ -214,7 +210,7 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Public Method ZCL_PACIENTE->INSERT_PACIENTE
+* | Static Public Method ZCL_PACIENTE=>INSERT_PACIENTE
 * +-------------------------------------------------------------------------------------------------+
 * | [--->] ID_HOSPITAL                    TYPE        ZHOSPITAIS-ID_HOSPITAL
 * | [--->] PACIENTE                       TYPE        ZPACIENTES
@@ -266,10 +262,10 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
         e_result = e_result
     ).
 
-    "se nao existir
-    if e_result-rc eq 1.
+    "se o paciente já existir no sistema
+    if e_result-rc ne 1.
       e_result-rc = 1.
-      e_result-mensagem = | O Paciente não pode ser cadastrado porque não existe id com o número { ls_paciente-id_paciente } |.
+      e_result-mensagem = | O Paciente já existe em nosso sistema { ls_paciente-id_paciente } |.
       return.
     endif.
 
@@ -348,12 +344,15 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
           else.
             rollback work.
           endif.
-          rollback work.
+        else.
+         rollback work.
         endif.
-        rollback work.
+      else.
+       rollback work.
       endif.
-      rollback work.
-    endif.
+    else.
+     rollback work.
+   endif.
 
     "limpa a estrutura
     clear: ls_paciente, ls_contactos, ls_docs, ls_enderecos, ls_info.
