@@ -60,11 +60,12 @@ class zcl_paciente definition
         invalid_pct .
     methods insert_paciente
       importing
-        !paciente  type zpacientes
-        !contactos type zpac_contactos
-        !docs      type zpac_docs
-        !enderecos type zpac_enderecos
-        !info      type zpac_infopac
+        !id_hospital type zhospitais-id_hospital
+        !paciente    type zpacientes
+        !contactos   type zpac_contactos
+        !docs        type zpac_docs
+        !enderecos   type zpac_enderecos
+        !info        type zpac_infopac
       exporting
         !e_result  type zapr_result .
   protected section.
@@ -79,11 +80,11 @@ class zcl_paciente definition
         !id_pct   type zpacientes-id_paciente
       exporting
         !e_result type zapr_result .
-endclass.
+ENDCLASS.
 
 
 
-class zcl_paciente implementation.
+CLASS ZCL_PACIENTE IMPLEMENTATION.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
@@ -215,6 +216,7 @@ class zcl_paciente implementation.
 * <SIGNATURE>---------------------------------------------------------------------------------------+
 * | Instance Public Method ZCL_PACIENTE->INSERT_PACIENTE
 * +-------------------------------------------------------------------------------------------------+
+* | [--->] ID_HOSPITAL                    TYPE        ZHOSPITAIS-ID_HOSPITAL
 * | [--->] PACIENTE                       TYPE        ZPACIENTES
 * | [--->] CONTACTOS                      TYPE        ZPAC_CONTACTOS
 * | [--->] DOCS                           TYPE        ZPAC_DOCS
@@ -223,6 +225,13 @@ class zcl_paciente implementation.
 * | [<---] E_RESULT                       TYPE        ZAPR_RESULT
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   method insert_paciente.
+
+    "se nao houver hospital.
+    if id_hospital is initial.
+      e_result-rc = 1.
+      e_result-mensagem = | Escolha um Hospital para Cadastrar o Paciente |.
+      return.
+    endif.
 
     "estruturas para receber os valores das estruturas enviadas como parametro
     data: ls_paciente  type zpacientes,
@@ -266,6 +275,7 @@ class zcl_paciente implementation.
 
     "preenche estruturas individualmente.
     ls_paciente-id_paciente    = zcl_paciente=>get_next( ).
+    ls_paciente-id_hospital    = id_hospital.
     ls_paciente-alterado_por   = sy-uname.
     ls_paciente-data_alteracao = sy-datum.
 
@@ -357,4 +367,4 @@ class zcl_paciente implementation.
     endif.
 
   endmethod.
-endclass.
+ENDCLASS.
