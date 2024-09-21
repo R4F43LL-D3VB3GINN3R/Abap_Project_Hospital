@@ -23,6 +23,7 @@ data: ls_paciente  type zpacientes,
 
 data: result_p type zapr_result. "estrutura de retorno de mensagens
 data: return_validation_p type zapr_result. "flag de validacao de campos
+data: lv_search type flag. "flag de retorno de consulta.
 
 "-----------------
 
