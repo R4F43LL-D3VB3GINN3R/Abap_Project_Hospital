@@ -1,75 +1,75 @@
-class ZCL_PACIENTE definition
+class zcl_paciente definition
   public
   final
   create public .
 
-public section.
+  public section.
 
-  types:
-    begin of wa_pct,
-             id_paciente         type zpacientes-id_paciente,
-             id_hospital         type zpacientes-id_hospital,
-             id_contacto         type zpac_contactos-id_contacto,
-             id_documento        type zpac_docs-id_documento,
-             id_localizacao      type zpac_enderecos-id_localizacao,
-             id_info_paciente    type zpac_infopac-id_info_paciente,
-             nome_paciente       type zpacientes-nome_paciente,
-             sexo                type zpacientes-sexo,
-             estado_civil        type zpacientes-estado_civil,
-             telefone_principal  type zpac_contactos-telefone_principal,
-             telefone_secundario type zpac_contactos-telefone_secundario,
-             email_paciente      type zpac_contactos-email_paciente,
-             contacto_emergencia type zpac_contactos-contacto_emergencia,
-             nome_contacto_e     type zpac_contactos-nome_contacto_e,
-             nif                 type zpac_docs-nif,
-             cartao_cidadao      type zpac_docs-cartao_cidadao,
-             numero_utente       type zpac_docs-numero_utente,
-             subsistema_saude    type zpac_docs-subsistema_saude,
-             numero_seguro       type zpac_docs-numero_seguro,
-             validade_seguro     type zpac_docs-validade_seguro,
-             morada_paciente     type zpac_enderecos-morada_paciente,
-             codigo_postal       type zpac_enderecos-codigo_postal,
-             concelho            type zpac_enderecos-concelho,
-             nacionalidade       type zpac_enderecos-nacionalidade,
-             peso                type zpac_infopac-peso,
-             altura              type zpac_infopac-altura,
-             data_inscricao      type zpac_infopac-data_inscricao,
-             ultima_consulta     type zpac_infopac-ultima_consulta,
-             tipo_sangue         type zpac_infopac-tipo_sangue,
-             alergias            type zpac_infopac-alergias,
-             doencas_cronicas    type zpac_infopac-doencas_cronicas,
-             medicacao_atual     type zpac_infopac-medicacao_atual,
-             historico_cirurgico type zpac_infopac-historico_cirurgico,
-             habitos_drogas      type zpac_infopac-habitos_drogas,
-             observacoes         type zpac_infopac-observacoes,
-             data_alteracao      type zpacientes-data_alteracao,
-             alterado_por        type zpacientes-alterado_por,
-           end of wa_pct .
+    types:
+      begin of wa_pct,
+        id_paciente         type zpacientes-id_paciente,
+        id_hospital         type zpacientes-id_hospital,
+        id_contacto         type zpac_contactos-id_contacto,
+        id_documento        type zpac_docs-id_documento,
+        id_localizacao      type zpac_enderecos-id_localizacao,
+        id_info_paciente    type zpac_infopac-id_info_paciente,
+        nome_paciente       type zpacientes-nome_paciente,
+        sexo                type zpacientes-sexo,
+        data_nascimento     type zpacientes-data_nascimento,
+        estado_civil        type zpacientes-estado_civil,
+        telefone_principal  type zpac_contactos-telefone_principal,
+        telefone_secundario type zpac_contactos-telefone_secundario,
+        email_paciente      type zpac_contactos-email_paciente,
+        contacto_emergencia type zpac_contactos-contacto_emergencia,
+        nome_contacto_e     type zpac_contactos-nome_contacto_e,
+        nif                 type zpac_docs-nif,
+        cartao_cidadao      type zpac_docs-cartao_cidadao,
+        numero_utente       type zpac_docs-numero_utente,
+        subsistema_saude    type zpac_docs-subsistema_saude,
+        numero_seguro       type zpac_docs-numero_seguro,
+        validade_seguro     type zpac_docs-validade_seguro,
+        morada_paciente     type zpac_enderecos-morada_paciente,
+        codigo_postal       type zpac_enderecos-codigo_postal,
+        concelho            type zpac_enderecos-concelho,
+        nacionalidade       type zpac_enderecos-nacionalidade,
+        peso                type zpac_infopac-peso,
+        altura              type zpac_infopac-altura,
+        data_inscricao      type zpac_infopac-data_inscricao,
+        ultima_consulta     type zpac_infopac-ultima_consulta,
+        tipo_sangue         type zpac_infopac-tipo_sangue,
+        alergias            type zpac_infopac-alergias,
+        doencas_cronicas    type zpac_infopac-doencas_cronicas,
+        medicacao_atual     type zpac_infopac-medicacao_atual,
+        historico_cirurgico type zpac_infopac-historico_cirurgico,
+        habitos_drogas      type zpac_infopac-habitos_drogas,
+        observacoes         type zpac_infopac-observacoes,
+        data_alteracao      type zpacientes-data_alteracao,
+        alterado_por        type zpacientes-alterado_por,
+      end of wa_pct .
 
-  data PACIENTE type ZPACIENTES .
-  data CONTACTOS type ZPAC_CONTACTOS .
-  data DOCS type ZPAC_DOCS .
-  data ENDERECOS type ZPAC_ENDERECOS .
-  data INFO type ZPAC_INFOPAC .
-  data:
-    it_pct    type table of wa_pct .
-  data LS_PCT type WA_PCT .
+    data paciente type zpacientes .
+    data contactos type zpac_contactos .
+    data docs type zpac_docs .
+    data enderecos type zpac_enderecos .
+    data info type zpac_infopac .
+    data it_pct    type table of wa_pct .
+    data ls_pct type wa_pct .
 
-  methods CONSTRUCTOR
-    importing
-      !ID_PACIENTE type ZPACIENTES-ID_PACIENTE
-    exceptions
-      INVALID_PCT .
-  class-methods INSERT_PACIENTE
-    importing
-      !ID_HOSPITAL type ZHOSPITAIS-ID_HOSPITAL
-      !PACIENTE type ZPACIENTES
-      !CONTACTOS type ZPAC_CONTACTOS
-      !DOCS type ZPAC_DOCS
-      !ENDERECOS type ZPAC_ENDERECOS
-      !INFO type ZPAC_INFOPAC
-    exporting
-      !E_RESULT type ZAPR_RESULT .
+    methods constructor
+      importing
+        !id_paciente type zpacientes-id_paciente
+      exceptions
+        invalid_pct .
+    class-methods insert_paciente
+      importing
+        !id_hospital type zhospitais-id_hospital
+        !paciente    type zpacientes
+        !contactos   type zpac_contactos
+        !docs        type zpac_docs
+        !enderecos   type zpac_enderecos
+        !info        type zpac_infopac
+      exporting
+        !e_result    type zapr_result .
   protected section.
   private section.
 
@@ -147,6 +147,7 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
        i~id_info_paciente,
        p~nome_paciente,
        p~sexo,
+       p~data_nascimento,
        p~estado_civil,
        c~telefone_principal,
        c~telefone_secundario,
@@ -263,9 +264,9 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
     ).
 
     "se o paciente já existir no sistema
-    if e_result-rc ne 1.
+    if e_result-rc eq 1.
       e_result-rc = 1.
-      e_result-mensagem = | O Paciente já existe em nosso sistema { ls_paciente-id_paciente } |.
+      e_result-mensagem = | O Paciente já existe em nosso sistema |.
       return.
     endif.
 
@@ -345,16 +346,16 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
             rollback work.
           endif.
         else.
-         rollback work.
+          rollback work.
         endif.
       else.
-       rollback work.
+        rollback work.
       endif.
     else.
-     rollback work.
-   endif.
+      rollback work.
+    endif.
 
-    "limpa a estrutura
+    "limpa as estruturas
     clear: ls_paciente, ls_contactos, ls_docs, ls_enderecos, ls_info.
 
     if sy-subrc eq 0.
