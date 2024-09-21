@@ -70,11 +70,16 @@ at selection-screen.
 
   if sy-dynnr = 101.
 
-    "se a dropdown nao estiver vazia
+    "se a dropdown de hospitais estiver vazia e nenhum botao for apertado...
     if p_nomesh is not initial and
-       p_nomesp is not initial and
+       p_nomesp is initial and
        sy-ucomm ne 'P_EDIT' and sy-ucomm ne 'P_INSERT' and sy-ucomm ne 'P_READ'.
-      perform fill_pct_fields.
+      perform fill_pct_dropdown_names.
+    "se a dropdown de hospitais estiver preenchida e nenhum botao for apertado...
+    elseif p_nomesh is not initial and
+           p_nomesp is not initial and
+           sy-ucomm ne 'P_EDIT' and sy-ucomm ne 'P_INSERT' and sy-ucomm ne 'P_READ'.
+      perform fill_pct_dropdown_names.
     endif.
 
     "se algum botao for pressionado...
@@ -88,9 +93,11 @@ at selection-screen.
     "se todos os campos estiverem validados
     if return_validation_p-rc eq 0.
 
+      perform get_pct_data. "preenche a estrutura
+
       case sy-ucomm.
         when 'P_INSERT'.
-          message 'insert' type 'I' display like 'S'.
+          perform insert_paciente.
         when 'P_EDIT'.
           message 'edit'  type 'I' display like 'S'.
         when 'P_READ'.
@@ -110,7 +117,7 @@ at selection-screen.
 
 initialization.
   perform fill_dropdown_names. "preenche as dropdowns da tela 100.
-  perform fill_pct_dropdown_names. "preenche as dropdowns da tela 101.
+  perform fill_hosp_dropdown_names. "preenche as dropdowns da tela 101.
 
   tab1 = '@0U@' && 'Hospitais'.
   tab2 = '@0U@' && 'Pacientes'.
