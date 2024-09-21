@@ -74,17 +74,25 @@ at selection-screen.
     if p_nomesh is not initial and
        p_nomesp is initial and
        sy-ucomm ne 'P_EDIT' and sy-ucomm ne 'P_INSERT' and sy-ucomm ne 'P_READ'.
+      perform clear_fields.
       perform fill_pct_dropdown_names.
-    "se a dropdown de hospitais estiver preenchida e nenhum botao for apertado...
+      "se a dropdown de hospitais estiver preenchida e nenhum botao for apertado...
     elseif p_nomesh is not initial and
            p_nomesp is not initial and
            sy-ucomm ne 'P_EDIT' and sy-ucomm ne 'P_INSERT' and sy-ucomm ne 'P_READ'.
+      perform clear_fields.
       perform fill_pct_dropdown_names.
+    endif.
+
+    if p_nomesp is not initial and
+       p_nomesh is not initial and
+       lv_search eq abap_true.
+      perform fill_fields_pct.
     endif.
 
     "se algum botao for pressionado...
     if sy-ucomm eq 'P_INSERT' or
-       sy-ucomm eq 'P_EDIT' or
+       sy-ucomm eq 'P_EDIT'   or
        sy-ucomm eq 'P_INSERT' or
        sy-ucomm eq 'P_READ'.
       perform field_pct_validations. "validacao de campos
