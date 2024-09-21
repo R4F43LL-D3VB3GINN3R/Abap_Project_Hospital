@@ -5,6 +5,25 @@
 "------------------------------------------------------------------------------------------------------
 "ROTINAS
 
+form fill_fields_pct.
+
+*  if p_nomesp is not initial and p_nomesh is not initial.
+*
+*  data: it_fields_pct type table of zpacientes,
+*        lv_id_pct     type zpacientes-id_paciente.
+*
+*  lv_id_pct = p_nomesp.
+*
+*  create object ol_paciente
+*    exporting
+*      id_paciente = lv_id_pct. " Id do Paciente
+*
+*  data: all_info_pct type ol_paciente->wa_pct.
+*
+*  endif.
+
+endform.
+
 form insert_paciente.
 
   "recebe o id da dropdown de hospitais.
@@ -15,14 +34,13 @@ form insert_paciente.
   create object ol_hospital
     exporting
       id_hospital = id_hosp.
-    .
+  .
   create object ol_paciente
     exporting
       id_paciente = 0                  " Id do Paciente
     exceptions
       invalid_pct = 1                " Paciente Inválido
-      others      = 2
-    .
+      others      = 2.
 
   "Método para cadastrar pacientes
   ol_paciente->insert_paciente(
@@ -101,22 +119,22 @@ form field_pct_validations.
     return_validation_p-rc = 1.
     return_validation_p-mensagem = | O campo Email deve conter @ no endereço. |.
     return.
-  "se o codigo postal nao tiver 8 digitos...
+    "se o codigo postal nao tiver 8 digitos...
   elseif strlen( p_codpst ) ne 8.
     return_validation_p-rc = 1.
     return_validation_p-mensagem = | O campo Código Postal deve respeitar a quantidade de 8 dígitos. |.
     return.
-  "se o telefone nao tiver 9 digitos...
+    "se o telefone nao tiver 9 digitos...
   elseif strlen( p_tel1 ) ne 9 or strlen( p_tel2 ) ne 9 or strlen( p_ct_em ) ne 9.
     return_validation_p-rc = 1.
     return_validation_p-mensagem = | O campo Telefone deve respeitar a quantidade de 9 dígitos. |.
     return.
-  "se o cartao cidadao nao tiver 9 digitos...
+    "se o cartao cidadao nao tiver 9 digitos...
   elseif strlen( p_cc ) ne 9.
     return_validation_p-rc = 1.
     return_validation_p-mensagem = | O campo Número do Cartão Cidadão deve respeitar a quantidade de 9 dígitos. |.
     return.
-  "se o numero do utente nao tiver 9 digitos...
+    "se o numero do utente nao tiver 9 digitos...
   elseif strlen( p_utente ) ne 9.
     return_validation_p-rc = 1.
     return_validation_p-mensagem = | O campo Número do Utente deve respeitar a quantidade de 9 dígitos. |.
@@ -125,7 +143,10 @@ form field_pct_validations.
 
 endform.
 
-form fill_pct_dropdown_names.
+form fill_hosp_dropdown_names.
+
+  clear it_list_pct.
+  clear p_nomesp.
 
   "estrutura com ids e nomes do hospital
   types: begin of wa_ddown2,
@@ -172,6 +193,10 @@ form fill_pct_dropdown_names.
 
   endif.
 
+endform.
+
+form fill_pct_dropdown_names.
+
   "estrutura com ids e nomes dos pacientes
   types: begin of wa_ddown3,
            id_paciente   type zpacientes-id_paciente,
@@ -184,7 +209,8 @@ form fill_pct_dropdown_names.
 
   "preenche os campos da tabela interna com id e nome
   select * from zpacientes
-    into corresponding fields of table it_ddown3.
+    into corresponding fields of table it_ddown3
+    where id_hospital eq p_nomesh.
 
   "se houverem dados retornados da consulta
   if sy-subrc eq 0.
@@ -200,7 +226,7 @@ form fill_pct_dropdown_names.
       ls_list_pct-key = id_char2.
       ls_list_pct-text = ls_ddown3-nome_paciente.
       append ls_list_pct to it_list_pct.
-      clear ls_ddown2.
+      clear ls_ddown3.
     endloop.
 
     "se a tabela estiver vazia...
@@ -215,12 +241,19 @@ form fill_pct_dropdown_names.
         id     = 'P_NOMESP'
         values = it_list_pct.
 
+    refresh it_list_pct.
+
+  "se nao houver dados retornados da consulta...
+  else.
+    "esta é a única forma de limpar uma listbox já preenchida
+    "mandando uma tabela vazia para a funcao de preencher a listbox.
+    refresh it_list_pct.
+    "chama a funcao que preenche a dropdown
+    call function 'VRM_SET_VALUES'
+      exporting
+        id     = 'P_NOMESP'
+        values = it_list_pct.
+    clear p_nomesp.
   endif.
-
-endform.
-
-form fill_pct_fields.
-
-
 
 endform.
