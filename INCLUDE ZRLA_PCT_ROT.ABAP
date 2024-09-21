@@ -5,22 +5,106 @@
 "------------------------------------------------------------------------------------------------------
 "ROTINAS
 
+form clear_fields.
+
+  clear:  p_nomep,         " Nome do paciente
+          p_sexop,         " Sexo
+          p_datanp,        " Data de nascimento
+          p_estcv,         " Estado civil
+          p_tel1,          " Telefone principal
+          p_tel2,          " Telefone secundário
+          p_mailp,         " Email do paciente
+          p_ct_em,         " Contacto de emergência
+          p_nm_em,         " Nome do contacto de emergência
+          p_nifp,          " NIF
+          p_cc,            " Cartão de cidadão
+          p_utente,        " Número de utente
+          p_sub_ss,        " Subsistema de saúde
+          p_nsecp,         " Número de seguro
+          p_valsec,        " Validade do seguro
+          p_mordp,         " Morada do paciente
+          p_codpst,        " Código postal
+          p_cclh,          " Concelho
+          p_nacio,         " Nacionalidade
+          p_peso,          " Peso
+          p_alt,           " Altura
+          p_dt_ins,        " Data de inscrição
+          p_ultc,          " Última consulta
+          p_tps,           " Tipo sanguíneo
+          p_alrg,          " Alergias
+          p_dncc,          " Doenças crônicas
+          p_medc,          " Medicação atual
+          p_hstc,          " Histórico cirúrgico
+          p_hbtd,          " Hábitos de drogas
+          p_obsp.          " Observações
+
+endform.
+
 form fill_fields_pct.
 
-*  if p_nomesp is not initial and p_nomesh is not initial.
-*
-*  data: it_fields_pct type table of zpacientes,
-*        lv_id_pct     type zpacientes-id_paciente.
-*
-*  lv_id_pct = p_nomesp.
-*
-*  create object ol_paciente
-*    exporting
-*      id_paciente = lv_id_pct. " Id do Paciente
-*
-*  data: all_info_pct type ol_paciente->wa_pct.
-*
-*  endif.
+  perform clear_fields.
+
+  data: lv_id_pct type zpacientes-id_paciente. "id para casting
+
+  lv_id_pct = p_nomesp. "recebe o id do campo
+
+  "cria um objeto de classe paciente
+  create object ol_paciente
+    exporting
+      id_paciente = lv_id_pct. " Id do Paciente
+
+  "cria uma estrutura com todos os dados referentes ao paciente
+  data: all_info_pct type ol_paciente->wa_pct.
+
+  "a estrutura recebe o objeto da classe com todos os dados preenchidos
+  all_info_pct = ol_paciente->ls_pct.
+
+  "se a estrutura foi devidamente preenchida...
+  if all_info_pct is not initial.
+
+    "preenche todos os campos.
+
+    "paciente
+    p_nomep  = all_info_pct-nome_paciente.
+    p_sexop  = all_info_pct-sexo.
+    p_datanp = all_info_pct-data_nascimento.
+    p_estcv  = all_info_pct-estado_civil.
+
+    "contactos
+    p_tel1   = all_info_pct-telefone_principal.
+    p_tel2   = all_info_pct-telefone_secundario.
+    p_mailp  = all_info_pct-email_paciente.
+    p_ct_em  = all_info_pct-contacto_emergencia.
+    p_nm_em  = all_info_pct-nome_contacto_e.
+
+    "docs
+    p_nifp   = all_info_pct-nif.
+    p_cc     = all_info_pct-cartao_cidadao.
+    p_utente = all_info_pct-numero_utente.
+    p_sub_ss = all_info_pct-subsistema_saude.
+    p_nsecp  = all_info_pct-numero_seguro.
+    p_valsec = all_info_pct-validade_seguro.
+
+    "enderecos
+    p_mordp  = all_info_pct-morada_paciente.
+    p_codpst = all_info_pct-codigo_postal.
+    p_cclh   = all_info_pct-concelho.
+    p_nacio  = all_info_pct-nacionalidade.
+
+    "infos
+    p_peso   = all_info_pct-peso.
+    p_alt    = all_info_pct-altura.
+    p_dt_ins = all_info_pct-data_inscricao.
+    p_ultc   = all_info_pct-ultima_consulta.
+    p_tps    = all_info_pct-tipo_sangue.
+    p_alrg   = all_info_pct-alergias.
+    p_dncc   = all_info_pct-doencas_cronicas.
+    p_medc   = all_info_pct-medicacao_atual.
+    p_hstc   = all_info_pct-historico_cirurgico.
+    p_hbtd   = all_info_pct-habitos_drogas.
+    p_obsp   = all_info_pct-observacoes.
+
+  endif.
 
 endform.
 
@@ -56,7 +140,7 @@ form insert_paciente.
   ).
 
   if result_p-rc ne 0.
-    message result_p-mensagem type 'E' display like 'S'.
+    message result_p-mensagem type 'S' display like 'E'.
   else.
     message result_p-mensagem type 'S'.
   endif.
@@ -215,6 +299,8 @@ form fill_pct_dropdown_names.
   "se houverem dados retornados da consulta
   if sy-subrc eq 0.
 
+    lv_search = abap_true. "ativa a flag.
+
     sort it_ddown3 by id_paciente. "ordena por id
 
     data: id_char2 type char10. "id em char
@@ -254,6 +340,8 @@ form fill_pct_dropdown_names.
         id     = 'P_NOMESP'
         values = it_list_pct.
     clear p_nomesp.
+
+    lv_search = abap_false. "desativa a flag.
   endif.
 
 endform.
