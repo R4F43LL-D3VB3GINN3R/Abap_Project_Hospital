@@ -86,13 +86,13 @@ ENDCLASS.
 
 
 
-CLASS ZCL_PACIENTE IMPLEMENTATION.
+CLASS ZCL_PACIENTE IMPLEMENTATION .
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
 * | Static Private Method ZCL_PACIENTE=>CHECK_PACIENTE
 * +-------------------------------------------------------------------------------------------------+
-* | [--->] ID_PCT                         TYPE        ZPACIENTES-ID_PACIENTE
+* | [--->] ID_PCT                         TYPE        ZPACIENTES-ID_PACIENTES
 * | [<---] E_RESULT                       TYPE        ZAPR_RESULT
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   method check_paciente.
