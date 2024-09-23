@@ -52,7 +52,8 @@ class zcl_paciente definition
     data docs type zpac_docs .
     data enderecos type zpac_enderecos .
     data info type zpac_infopac .
-    data it_pct    type table of wa_pct .
+    data:
+      it_pct    type table of wa_pct .
     data ls_pct type wa_pct .
 
     methods constructor
@@ -70,15 +71,25 @@ class zcl_paciente definition
         !info        type zpac_infopac
       exporting
         !e_result    type zapr_result .
+    class-methods edit_paciente
+      importing
+        !id_hospital type zhospitais-id_hospital
+        !paciente    type zpacientes
+        !contactos   type zpac_contactos
+        !docs        type zpac_docs
+        !enderecos   type zpac_enderecos
+        !info        type zpac_infopac
+      exporting
+        !e_result    type zapr_result .
   protected section.
   private section.
 
     class-methods get_next
       returning
         value(id_pct) type zpacientes-id_paciente .
-
     class-methods check_paciente
       importing
+        !id_hsp   type zpacientes-id_hospital
         !id_pct   type zpacientes-id_paciente
       exporting
         !e_result type zapr_result .
@@ -86,28 +97,34 @@ ENDCLASS.
 
 
 
-CLASS ZCL_PACIENTE IMPLEMENTATION .
+CLASS ZCL_PACIENTE IMPLEMENTATION.
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
 * | Static Private Method ZCL_PACIENTE=>CHECK_PACIENTE
 * +-------------------------------------------------------------------------------------------------+
-* | [--->] ID_PCT                         TYPE        ZPACIENTES-ID_PACIENTES
+* | [--->] ID_HSP                         TYPE        ZPACIENTES-ID_HOSPITAL
+* | [--->] ID_PCT                         TYPE        ZPACIENTES-ID_PACIENTE
 * | [<---] E_RESULT                       TYPE        ZAPR_RESULT
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   method check_paciente.
 
     data id_paciente type zpacientes-id_paciente.
+    data id_hospital type zhospitais-id_hospital.
 
     "verifica se o paciente existe.
     select single id_paciente
+                  id_hospital
       from zpacientes
-      into id_paciente
-      where id_paciente eq id_pct.
+      into ( id_paciente, id_hospital )
+      where id_paciente eq id_pct
+      and id_hospital eq id_hsp.
 
     if sy-subrc ne 0.
       e_result-rc = 1.
       e_result-mensagem = | Paciente não existe no sistema |.
+    else.
+      e_result-rc = 0.
     endif.
 
   endmethod.
@@ -189,6 +206,190 @@ CLASS ZCL_PACIENTE IMPLEMENTATION .
 
 
 * <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Static Public Method ZCL_PACIENTE=>EDIT_PACIENTE
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] ID_HOSPITAL                    TYPE        ZHOSPITAIS-ID_HOSPITAL
+* | [--->] PACIENTE                       TYPE        ZPACIENTES
+* | [--->] CONTACTOS                      TYPE        ZPAC_CONTACTOS
+* | [--->] DOCS                           TYPE        ZPAC_DOCS
+* | [--->] ENDERECOS                      TYPE        ZPAC_ENDERECOS
+* | [--->] INFO                           TYPE        ZPAC_INFOPAC
+* | [<---] E_RESULT                       TYPE        ZAPR_RESULT
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  method edit_paciente.
+
+    data: msg type string. "guarda qual das informacoes do paciente foi alterada
+
+    "estruturas e variaveis do paciente
+    data: id_hsp       type zhospitais-id_hospital,
+          ls_paciente  type zpacientes,
+          ls_contactos type zpac_contactos,
+          ls_docs      type zpac_docs,
+          ls_enderecos type zpac_enderecos,
+          ls_info      type zpac_infopac.
+
+    "estruturas e variaveis recebem os valores da entrada
+    id_hsp       = id_hospital.
+    ls_paciente  = paciente.
+    ls_contactos = contactos.
+    ls_docs      = docs.
+    ls_enderecos = enderecos.
+    ls_info      = info.
+
+    "verifica se o paciente existe
+    zcl_paciente=>check_paciente(
+      exporting
+        id_hsp   = id_hsp                 " Nº natural
+        id_pct   = ls_paciente-id_paciente
+      importing
+        e_result = e_result
+    ).
+
+    "se nao existir...
+    if e_result eq 1.
+      return.
+    endif.
+
+    "verifica se há necessidade de alterar as informacoes da tabela zpacientes
+    data: ls_pac type zpacientes.
+
+    select single nome_paciente,
+                  data_nascimento,
+                  sexo,
+                  estado_civil
+      from zpacientes
+      into corresponding fields of @ls_pac
+      where nome_paciente eq @ls_paciente-nome_paciente
+      and data_nascimento eq @ls_paciente-data_nascimento
+      and sexo            eq @ls_paciente-sexo
+      and estado_civil    eq @ls_paciente-estado_civil.
+
+      if sy-subrc ne 0.
+        e_result-rc = 0.
+        concatenate msg 'Informações Gerais' into msg separated by space.
+        ls_paciente-data_alteracao = sy-datum.
+        ls_paciente-alterado_por   = sy-uname.
+        update zpacientes from ls_paciente.
+      endif.
+
+    "verifica se há necessidade de alterar as informacoes da tabela zpac_contactos
+    data: ls_cnt type zpac_contactos.
+
+    select single telefone_principal,
+                  telefone_secundario,
+                  email_paciente,
+                  contacto_emergencia,
+                  nome_contacto_e
+      from zpac_contactos
+      into corresponding fields of @ls_cnt
+      where telefone_principal  eq @ls_contactos-telefone_principal
+      and telefone_secundario   eq @ls_contactos-telefone_secundario
+      and email_paciente        eq @ls_contactos-email_paciente
+      and contacto_emergencia   eq @ls_contactos-contacto_emergencia
+      and nome_contacto_e       eq @ls_contactos-nome_contacto_e.
+
+      if sy-subrc eq 0.
+        e_result-rc = 0.
+        concatenate msg 'Contactos' into msg separated by space.
+        ls_contactos-data_alteracao = sy-datum.
+        ls_contactos-alterado_por   = sy-uname.
+        update zpac_contactos from ls_contactos.
+      endif.
+
+     "verifica se há necessidade de alterar as informacoes da tabela zpac_docs
+     data: ls_documentos type zpac_docs.
+
+     select single nif,
+                   cartao_cidadao,
+                   numero_utente,
+                   subsistema_saude,
+                   numero_seguro,
+                   validade_seguro
+       from zpac_docs
+       into corresponding fields of @ls_documentos
+       where nif            eq @ls_docs-nif
+       and cartao_cidadao   eq @ls_docs-cartao_cidadao
+       and numero_utente    eq @ls_docs-numero_utente
+       and subsistema_saude eq @ls_docs-subsistema_saude
+       and numero_seguro    eq @ls_docs-numero_seguro
+       and validade_seguro  eq @ls_docs-validade_seguro.
+
+       if sy-subrc ne 0.
+         e_result-rc = 0.
+         concatenate msg 'Documentos' into msg separated by space.
+         ls_docs-data_alteracao = sy-datum.
+         ls_docs-alterado_por   = sy-uname.
+         update zpac_docs from ls_docs.
+       endif.
+
+     "verifica se há necessidade de alterar as informacoes da tabela zpac_enderecos
+     data: ls_endr type zpac_enderecos.
+
+     select single morada_paciente,
+                   codigo_postal,
+                   concelho,
+                   nacionalidade
+       from zpac_enderecos
+       into corresponding fields of @ls_endr
+       where morada_paciente eq @ls_enderecos-morada_paciente
+       and codigo_postal     eq @ls_enderecos-codigo_postal
+       and concelho          eq @ls_enderecos-concelho
+       and nacionalidade     eq @ls_enderecos-nacionalidade.
+
+       if sy-subrc ne 0.
+         e_result-rc = 0.
+         concatenate msg 'Endereços' into msg separated by space.
+         ls_enderecos-data_alteracao = sy-datum.
+         ls_enderecos-alterado_por   = sy-uname.
+         update zpac_enderecos from ls_enderecos.
+       endif.
+
+     "verifica se há necessidade de alterar as informacoes da tabela zpac-infopac
+     data: ls_inf type zpac_infopac.
+
+     select single peso,
+                   altura,
+                   data_inscricao,
+                   ultima_consulta,
+                   tipo_sangue,
+                   alergias,
+                   doencas_cronicas,
+                   medicacao_atual,
+                   historico_cirurgico,
+                   habitos_drogas,
+                   observacoes
+       from zpac_infopac
+       into corresponding fields of @ls_inf
+       where peso              eq @ls_info-peso
+       and altura              eq @ls_info-altura
+       and ultima_consulta     eq @ls_info-ultima_consulta
+       and tipo_sangue         eq @ls_info-tipo_sangue
+       and alergias            eq @ls_info-alergias
+       and doencas_cronicas    eq @ls_info-doencas_cronicas
+       and medicacao_atual     eq @ls_info-medicacao_atual
+       and historico_cirurgico eq @ls_info-historico_cirurgico
+       and habitos_drogas      eq @ls_info-habitos_drogas
+       and observacoes         eq @ls_info-observacoes.
+
+       if sy-subrc ne 0.
+         e_result-rc = 0.
+         concatenate msg 'Informações Pessoais' into msg separated by space.
+         ls_info-data_alteracao = sy-datum.
+         ls_info-alterado_por   = sy-uname.
+         update zpac_infopac from ls_info.
+       endif.
+
+     "se alguma informacao foi alterada
+     if e_result-rc eq 0.
+       e_result-mensagem = msg.
+     else.
+       e_result-mensagem = | Não houveram alterações |.
+     endif.
+
+  endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
 * | Static Private Method ZCL_PACIENTE=>GET_NEXT
 * +-------------------------------------------------------------------------------------------------+
 * | [<-()] ID_PCT                         TYPE        ZPACIENTES-ID_PACIENTE
@@ -258,6 +459,7 @@ CLASS ZCL_PACIENTE IMPLEMENTATION .
     "verifica se o paciente existe
     zcl_paciente=>check_paciente(
       exporting
+        id_hsp   = ls_paciente-id_hospital
         id_pct   = ls_paciente-id_paciente
       importing
         e_result = e_result
