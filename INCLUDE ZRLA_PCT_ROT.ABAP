@@ -79,6 +79,8 @@ form edit_paciente.
   clear: ls_paciente, ls_contactos, ls_docs, ls_enderecos, ls_info, result_p.
   free ol_paciente.
 
+  perform refresh_pct_dropdown. "recarrega a dropdown de pacientes.
+
 endform.
 
 form clear_fields.
@@ -224,6 +226,8 @@ form insert_paciente.
   endif.
 
   free: ol_paciente, ol_hospital.
+
+  perform refresh_pct_dropdown.
 
 endform.
 
@@ -428,5 +432,12 @@ form clear_pct_dropdown.
     exporting
       id     = 'P_NOMESP'
       values = it_list_pct.
+
+endform.
+
+form refresh_pct_dropdown.
+
+  perform clear_pct_dropdown.
+  perform fill_pct_dropdown_names.
 
 endform.
