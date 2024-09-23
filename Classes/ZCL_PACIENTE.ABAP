@@ -82,27 +82,27 @@ class zcl_paciente definition
       exporting
         !e_result    type zapr_result .
   protected section.
-private section.
+  private section.
 
-  class-methods GET_NEXT
-    returning
-      value(ID_PCT) type ZPACIENTES-ID_PACIENTE .
-  class-methods CHECK_PACIENTE
-    importing
-      !ID_HSP type ZPACIENTES-ID_HOSPITAL
-      !ID_PCT type ZPACIENTES-ID_PACIENTE
-    exporting
-      !E_RESULT type ZAPR_RESULT .
-  class-methods GET_ID
-    importing
-      !NIF type ZPAC_DOCS-NIF
-    exporting
-      !ID_PACIENTE type ZPAC_DOCS-ID_PACIENTE
-      !ID_DOCS type ZPAC_DOCS-ID_DOCUMENTO
-      !ID_CONTACTO type ZPAC_CONTACTOS-ID_CONTACTO
-      !ID_INFO type ZPAC_INFOPAC-ID_INFO_PACIENTE
-      !ID_ENDERECO type ZPAC_ENDERECOS-ID_LOCALIZACAO
-      !E_RESULT type ZAPR_RESULT .
+    class-methods get_next
+      returning
+        value(id_pct) type zpacientes-id_paciente .
+    class-methods check_paciente
+      importing
+        !id_hsp   type zpacientes-id_hospital
+        !id_pct   type zpacientes-id_paciente
+      exporting
+        !e_result type zapr_result .
+    class-methods get_id
+      importing
+        !nif         type zpac_docs-nif
+      exporting
+        !id_paciente type zpac_docs-id_paciente
+        !id_docs     type zpac_docs-id_documento
+        !id_contacto type zpac_contactos-id_contacto
+        !id_info     type zpac_infopac-id_info_paciente
+        !id_endereco type zpac_enderecos-id_localizacao
+        !e_result    type zapr_result .
 ENDCLASS.
 
 
@@ -300,13 +300,13 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
       and sexo            eq @ls_paciente-sexo
       and estado_civil    eq @ls_paciente-estado_civil.
 
-      if sy-subrc ne 0.
-        e_result-rc = 0.
-        concatenate msg 'Informações Gerais' into msg separated by space.
-        ls_paciente-data_alteracao = sy-datum.
-        ls_paciente-alterado_por   = sy-uname.
-        update zpacientes from ls_paciente.
-      endif.
+    if sy-subrc ne 0.
+      e_result-rc = 0.
+      concatenate msg '[Informações Gerais]' into msg separated by space.
+      ls_paciente-data_alteracao = sy-datum.
+      ls_paciente-alterado_por   = sy-uname.
+      update zpacientes from ls_paciente.
+    endif.
 
     "verifica se há necessidade de alterar as informacoes da tabela zpac_contactos
     data: ls_cnt type zpac_contactos.
@@ -324,104 +324,104 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
       and contacto_emergencia   eq @ls_contactos-contacto_emergencia
       and nome_contacto_e       eq @ls_contactos-nome_contacto_e.
 
-      if sy-subrc ne 0.
-        e_result-rc = 0.
-        concatenate msg 'Contactos' into msg separated by space.
-        ls_contactos-data_alteracao = sy-datum.
-        ls_contactos-alterado_por   = sy-uname.
-        update zpac_contactos from ls_contactos.
-      endif.
+    if sy-subrc ne 0.
+      e_result-rc = 0.
+      concatenate msg '[Contactos]' into msg separated by space.
+      ls_contactos-data_alteracao = sy-datum.
+      ls_contactos-alterado_por   = sy-uname.
+      update zpac_contactos from ls_contactos.
+    endif.
 
-     "verifica se há necessidade de alterar as informacoes da tabela zpac_docs
-     data: ls_documentos type zpac_docs.
+    "verifica se há necessidade de alterar as informacoes da tabela zpac_docs
+    data: ls_documentos type zpac_docs.
 
-     select single nif,
-                   cartao_cidadao,
-                   numero_utente,
-                   subsistema_saude,
-                   numero_seguro,
-                   validade_seguro
-       from zpac_docs
-       into corresponding fields of @ls_documentos
-       where nif            eq @ls_docs-nif
-       and cartao_cidadao   eq @ls_docs-cartao_cidadao
-       and numero_utente    eq @ls_docs-numero_utente
-       and subsistema_saude eq @ls_docs-subsistema_saude
-       and numero_seguro    eq @ls_docs-numero_seguro
-       and validade_seguro  eq @ls_docs-validade_seguro.
+    select single nif,
+                  cartao_cidadao,
+                  numero_utente,
+                  subsistema_saude,
+                  numero_seguro,
+                  validade_seguro
+      from zpac_docs
+      into corresponding fields of @ls_documentos
+      where nif            eq @ls_docs-nif
+      and cartao_cidadao   eq @ls_docs-cartao_cidadao
+      and numero_utente    eq @ls_docs-numero_utente
+      and subsistema_saude eq @ls_docs-subsistema_saude
+      and numero_seguro    eq @ls_docs-numero_seguro
+      and validade_seguro  eq @ls_docs-validade_seguro.
 
-       if sy-subrc ne 0.
-         e_result-rc = 0.
-         concatenate msg 'Documentos' into msg separated by space.
-         ls_docs-data_alteracao = sy-datum.
-         ls_docs-alterado_por   = sy-uname.
-         update zpac_docs from ls_docs.
-       endif.
+    if sy-subrc ne 0.
+      e_result-rc = 0.
+      concatenate msg '[Documentos]' into msg separated by space.
+      ls_docs-data_alteracao = sy-datum.
+      ls_docs-alterado_por   = sy-uname.
+      update zpac_docs from ls_docs.
+    endif.
 
-     "verifica se há necessidade de alterar as informacoes da tabela zpac_enderecos
-     data: ls_endr type zpac_enderecos.
+    "verifica se há necessidade de alterar as informacoes da tabela zpac_enderecos
+    data: ls_endr type zpac_enderecos.
 
-     select single morada_paciente,
-                   codigo_postal,
-                   concelho,
-                   nacionalidade
-       from zpac_enderecos
-       into corresponding fields of @ls_endr
-       where morada_paciente eq @ls_enderecos-morada_paciente
-       and codigo_postal     eq @ls_enderecos-codigo_postal
-       and concelho          eq @ls_enderecos-concelho
-       and nacionalidade     eq @ls_enderecos-nacionalidade.
+    select single morada_paciente,
+                  codigo_postal,
+                  concelho,
+                  nacionalidade
+      from zpac_enderecos
+      into corresponding fields of @ls_endr
+      where morada_paciente eq @ls_enderecos-morada_paciente
+      and codigo_postal     eq @ls_enderecos-codigo_postal
+      and concelho          eq @ls_enderecos-concelho
+      and nacionalidade     eq @ls_enderecos-nacionalidade.
 
-       if sy-subrc ne 0.
-         e_result-rc = 0.
-         concatenate msg 'Endereços' into msg separated by space.
-         ls_enderecos-data_alteracao = sy-datum.
-         ls_enderecos-alterado_por   = sy-uname.
-         update zpac_enderecos from ls_enderecos.
-       endif.
+    if sy-subrc ne 0.
+      e_result-rc = 0.
+      concatenate msg '[Endereço]' into msg separated by space.
+      ls_enderecos-data_alteracao = sy-datum.
+      ls_enderecos-alterado_por   = sy-uname.
+      update zpac_enderecos from ls_enderecos.
+    endif.
 
-     "verifica se há necessidade de alterar as informacoes da tabela zpac-infopac
-     data: ls_inf type zpac_infopac.
+    "verifica se há necessidade de alterar as informacoes da tabela zpac-infopac
+    data: ls_inf type zpac_infopac.
 
-     select single peso,
-                   altura,
-                   data_inscricao,
-                   ultima_consulta,
-                   tipo_sangue,
-                   alergias,
-                   doencas_cronicas,
-                   medicacao_atual,
-                   historico_cirurgico,
-                   habitos_drogas,
-                   observacoes
-       from zpac_infopac
-       into corresponding fields of @ls_inf
-       where peso              eq @ls_info-peso
-       and altura              eq @ls_info-altura
-       and ultima_consulta     eq @ls_info-ultima_consulta
-       and tipo_sangue         eq @ls_info-tipo_sangue
-       and alergias            eq @ls_info-alergias
-       and doencas_cronicas    eq @ls_info-doencas_cronicas
-       and medicacao_atual     eq @ls_info-medicacao_atual
-       and historico_cirurgico eq @ls_info-historico_cirurgico
-       and habitos_drogas      eq @ls_info-habitos_drogas
-       and observacoes         eq @ls_info-observacoes.
+    select single peso,
+                  altura,
+                  data_inscricao,
+                  ultima_consulta,
+                  tipo_sangue,
+                  alergias,
+                  doencas_cronicas,
+                  medicacao_atual,
+                  historico_cirurgico,
+                  habitos_drogas,
+                  observacoes
+      from zpac_infopac
+      into corresponding fields of @ls_inf
+      where peso              eq @ls_info-peso
+      and altura              eq @ls_info-altura
+      and ultima_consulta     eq @ls_info-ultima_consulta
+      and tipo_sangue         eq @ls_info-tipo_sangue
+      and alergias            eq @ls_info-alergias
+      and doencas_cronicas    eq @ls_info-doencas_cronicas
+      and medicacao_atual     eq @ls_info-medicacao_atual
+      and historico_cirurgico eq @ls_info-historico_cirurgico
+      and habitos_drogas      eq @ls_info-habitos_drogas
+      and observacoes         eq @ls_info-observacoes.
 
-       if sy-subrc ne 0.
-         e_result-rc = 0.
-         concatenate msg 'Informações Pessoais' into msg separated by space.
-         ls_info-data_alteracao = sy-datum.
-         ls_info-alterado_por   = sy-uname.
-         update zpac_infopac from ls_info.
-       endif.
+    if sy-subrc ne 0.
+      e_result-rc = 0.
+      concatenate msg '[Informações Médicas]' into msg separated by space.
+      ls_info-data_alteracao = sy-datum.
+      ls_info-alterado_por   = sy-uname.
+      update zpac_infopac from ls_info.
+    endif.
 
-     "se alguma informacao foi alterada
-     if e_result-rc eq 0.
-       concatenate msg 'do Paciente foram alteradas. ' into msg separated by space.
-       e_result-mensagem = msg.
-     else.
-       e_result-mensagem = | Não houveram alterações |.
-     endif.
+    "se alguma informacao foi alterada
+    if e_result-rc eq 0.
+      concatenate 'Alterações em:' msg 'do Paciente' ls_paciente-nome_paciente into msg separated by space.
+      e_result-mensagem = msg.
+    else.
+      e_result-mensagem = | Não houveram alterações |.
+    endif.
 
   endmethod.
 
@@ -437,7 +437,7 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
 * | [<---] ID_ENDERECO                    TYPE        ZPAC_ENDERECOS-ID_LOCALIZACAO
 * | [<---] E_RESULT                       TYPE        ZAPR_RESULT
 * +--------------------------------------------------------------------------------------</SIGNATURE>
-  method GET_ID.
+  method get_id.
 
     "procura o id do paciente referente ao nif enviado
     select single id_paciente
@@ -467,7 +467,7 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
 
     if sy-subrc ne 0.
       e_result-rc = sy-subrc.
-      e_result-mensagem = | Identificação adicional do paciente não foi encontreada |.
+      e_result-mensagem = | Identificação adicional do paciente não foi encontrada |.
     else.
       e_result-rc = sy-subrc.
     endif.
@@ -552,7 +552,7 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
     ).
 
     "se o paciente já existir no sistema
-    if e_result-rc eq 1.
+    if e_result-rc ne 1.
       e_result-rc = 1.
       e_result-mensagem = | O Paciente já existe em nosso sistema |.
       return.
