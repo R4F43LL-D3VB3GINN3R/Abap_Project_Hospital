@@ -218,7 +218,7 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   method edit_paciente.
 
-    data: msg type string. "guarda qual das informacoes do paciente foi alterada
+    data: msg type string. "guarda qual ou quais das informacoes do paciente foram alteradas
 
     "estruturas e variaveis do paciente
     data: id_hsp       type zhospitais-id_hospital,
@@ -366,7 +366,7 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
        and tipo_sangue         eq @ls_info-tipo_sangue
        and alergias            eq @ls_info-alergias
        and doencas_cronicas    eq @ls_info-doencas_cronicas
-       and medicacao_atual     eq @ls_info-medicacao_atual
+       and medicacao_atual     eq @ls_info-medicacao_atualac
        and historico_cirurgico eq @ls_info-historico_cirurgico
        and habitos_drogas      eq @ls_info-habitos_drogas
        and observacoes         eq @ls_info-observacoes.
@@ -381,6 +381,7 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
 
      "se alguma informacao foi alterada
      if e_result-rc eq 0.
+       concatenate msg 'do Paciente foram alteradas. ' into msg separated by space.
        e_result-mensagem = msg.
      else.
        e_result-mensagem = | Não houveram alterações |.
