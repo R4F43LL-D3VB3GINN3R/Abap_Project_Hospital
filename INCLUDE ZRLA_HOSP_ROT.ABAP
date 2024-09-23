@@ -78,8 +78,6 @@ form insert_hospital.
       e_result = result      " Mensagem
   ).
 
-  "limpa os dados
-  clear lv_spec.
   clear ls_hospital.
   free ol_hospital.
 
@@ -88,6 +86,8 @@ form insert_hospital.
   else.
     message result-mensagem type 'S' display like 'E'.
   endif.
+
+  perform refresh_dropdown.
 
 endform.
 
@@ -101,8 +101,6 @@ form update_hospital.
       e_result = result      " Estrutura de resultados de operações
   ).
 
-  "limpa os dados
-  clear lv_spec.
   clear ls_hospital.
   free ol_hospital.
 
@@ -113,6 +111,7 @@ form update_hospital.
   endif.
 
   free ol_hospital.
+  perform refresh_dropdown.
 
 endform.
 
@@ -242,5 +241,19 @@ form fill_fields.
     p_spec11 = cond #( when 'Hematologia'       co dd_hospital-especialidades then 'X' else '' ).
 
   endif.
+
+endform.
+
+form refresh_dropdown.
+
+  refresh it_list.
+
+  "chama a funcao que preenche a dropdown
+    call function 'VRM_SET_VALUES'
+      exporting
+        id     = 'P_NOMES'
+        values = it_list.
+
+  perform fill_dropdown_names.
 
 endform.
