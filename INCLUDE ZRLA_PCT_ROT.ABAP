@@ -180,6 +180,8 @@ form fill_fields_pct.
     p_hbtd   = all_info_pct-habitos_drogas.
     p_obsp   = all_info_pct-observacoes.
 
+    clear p_nomesp. "obs - nunca esquecer de limpar este campo
+
   endif.
 
 endform.
@@ -308,7 +310,6 @@ endform.
 form fill_hosp_dropdown_names.
 
   clear it_list_pct.
-  clear p_nomesp.
 
   "estrutura com ids e nomes do hospital
   types: begin of wa_ddown2,
@@ -377,6 +378,8 @@ form fill_pct_dropdown_names.
   "se houverem dados retornados da consulta
   if sy-subrc eq 0.
 
+    perform clear_pct_dropdown.
+
     lv_search = abap_true. "ativa a flag.
 
     sort it_ddown3 by id_paciente. "ordena por id
@@ -409,17 +412,21 @@ form fill_pct_dropdown_names.
 
   "se nao houver dados retornados da consulta...
   else.
-    "esta é a única forma de limpar uma listbox já preenchida
-    "mandando uma tabela vazia para a funcao de preencher a listbox.
-    refresh it_list_pct.
-    "chama a funcao que preenche a dropdown
-    call function 'VRM_SET_VALUES'
-      exporting
-        id     = 'P_NOMESP'
-        values = it_list_pct.
-    clear p_nomesp.
-
+    perform clear_pct_dropdown.
     lv_search = abap_false. "desativa a flag.
   endif.
+
+endform.
+
+form clear_pct_dropdown.
+
+  "esta é a única forma de limpar uma listbox já preenchida
+  "mandando uma tabela vazia para a funcao de preencher a listbox.
+  refresh it_list_pct.
+  "chama a funcao que preenche a dropdown
+  call function 'VRM_SET_VALUES'
+    exporting
+      id     = 'P_NOMESP'
+      values = it_list_pct.
 
 endform.
