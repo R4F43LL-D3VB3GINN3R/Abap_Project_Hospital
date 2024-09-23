@@ -82,17 +82,27 @@ class zcl_paciente definition
       exporting
         !e_result    type zapr_result .
   protected section.
-  private section.
+private section.
 
-    class-methods get_next
-      returning
-        value(id_pct) type zpacientes-id_paciente .
-    class-methods check_paciente
-      importing
-        !id_hsp   type zpacientes-id_hospital
-        !id_pct   type zpacientes-id_paciente
-      exporting
-        !e_result type zapr_result .
+  class-methods GET_NEXT
+    returning
+      value(ID_PCT) type ZPACIENTES-ID_PACIENTE .
+  class-methods CHECK_PACIENTE
+    importing
+      !ID_HSP type ZPACIENTES-ID_HOSPITAL
+      !ID_PCT type ZPACIENTES-ID_PACIENTE
+    exporting
+      !E_RESULT type ZAPR_RESULT .
+  class-methods GET_ID
+    importing
+      !NIF type ZPAC_DOCS-NIF
+    exporting
+      !ID_PACIENTE type ZPAC_DOCS-ID_PACIENTE
+      !ID_DOCS type ZPAC_DOCS-ID_DOCUMENTO
+      !ID_CONTACTO type ZPAC_CONTACTOS-ID_CONTACTO
+      !ID_INFO type ZPAC_INFOPAC-ID_INFO_PACIENTE
+      !ID_ENDERECO type ZPAC_ENDERECOS-ID_LOCALIZACAO
+      !E_RESULT type ZAPR_RESULT .
 ENDCLASS.
 
 
@@ -236,17 +246,43 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
     ls_enderecos = enderecos.
     ls_info      = info.
 
-    "verifica se o paciente existe
-    zcl_paciente=>check_paciente(
+    ls_paciente-id_hospital = id_hsp. "recebe o id do hospital.
+
+    "pega os ids do paciente referente ao nif.
+    zcl_paciente=>get_id(
       exporting
-        id_hsp   = id_hsp                 " Nº natural
-        id_pct   = ls_paciente-id_paciente
+        nif         = ls_docs-nif                 " Nif do Paciente
       importing
-        e_result = e_result
+        id_paciente = ls_paciente-id_paciente     " Id do Paciente
+        id_docs     = ls_docs-id_documento        " Id dos Documentos
+        id_contacto = ls_contactos-id_contacto    " Id de Contacto
+        id_info     = ls_info-id_info_paciente    " Id de Informações Adicionais
+        id_endereco = ls_enderecos-id_localizacao " Id da Localização
+        e_result    = e_result                    " Estrutura de resultados de operações
     ).
 
     "se nao existir...
-    if e_result eq 1.
+    if e_result-rc ne 0.
+      return.
+    endif.
+
+    "atribui os ids do paciente nas estruturas
+    ls_contactos-id_paciente = ls_paciente-id_paciente.
+    ls_docs-id_paciente      = ls_paciente-id_paciente.
+    ls_enderecos-id_paciente = ls_paciente-id_paciente.
+    ls_info-id_paciente      = ls_paciente-id_paciente.
+
+    "verifica se o paciente existe
+    zcl_paciente=>check_paciente(
+      exporting
+        id_hsp   = id_hsp                  " Id do Hospital
+        id_pct   = ls_paciente-id_paciente " Id do Paciente
+      importing
+        e_result = e_result                " Estrutura de resultados de operações
+    ).
+
+    "se nao existir...
+    if e_result-rc eq 1.
       return.
     endif.
 
@@ -288,7 +324,7 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
       and contacto_emergencia   eq @ls_contactos-contacto_emergencia
       and nome_contacto_e       eq @ls_contactos-nome_contacto_e.
 
-      if sy-subrc eq 0.
+      if sy-subrc ne 0.
         e_result-rc = 0.
         concatenate msg 'Contactos' into msg separated by space.
         ls_contactos-data_alteracao = sy-datum.
@@ -386,6 +422,55 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
      else.
        e_result-mensagem = | Não houveram alterações |.
      endif.
+
+  endmethod.
+
+
+* <SIGNATURE>---------------------------------------------------------------------------------------+
+* | Static Private Method ZCL_PACIENTE=>GET_ID
+* +-------------------------------------------------------------------------------------------------+
+* | [--->] NIF                            TYPE        ZPAC_DOCS-NIF
+* | [<---] ID_PACIENTE                    TYPE        ZPAC_DOCS-ID_PACIENTE
+* | [<---] ID_DOCS                        TYPE        ZPAC_DOCS-ID_DOCUMENTO
+* | [<---] ID_CONTACTO                    TYPE        ZPAC_CONTACTOS-ID_CONTACTO
+* | [<---] ID_INFO                        TYPE        ZPAC_INFOPAC-ID_INFO_PACIENTE
+* | [<---] ID_ENDERECO                    TYPE        ZPAC_ENDERECOS-ID_LOCALIZACAO
+* | [<---] E_RESULT                       TYPE        ZAPR_RESULT
+* +--------------------------------------------------------------------------------------</SIGNATURE>
+  method GET_ID.
+
+    "procura o id do paciente referente ao nif enviado
+    select single id_paciente
+      from zpac_docs
+      into id_paciente
+      where nif eq nif.
+
+    if sy-subrc ne 0.
+      e_result-rc = sy-subrc.
+      e_result-mensagem = | Não há um id referente ao nif do paciente |.
+    else.
+      e_result-rc = sy-subrc.
+    endif.
+
+    "seleciona todos os ids referente ao id do paciente
+    select single d~id_documento,
+                  c~id_contacto,
+                  i~id_info_paciente,
+                  e~id_localizacao
+      from zpacientes           as p
+      inner join zpac_docs      as d on d~id_paciente eq p~id_paciente
+      inner join zpac_contactos as c on c~id_paciente eq p~id_paciente
+      inner join zpac_infopac   as i on i~id_paciente eq i~id_paciente
+      inner join zpac_enderecos as e on e~id_paciente eq i~id_paciente
+      into ( @id_docs, @id_contacto, @id_info, @id_endereco )
+      where p~id_paciente eq @id_paciente.
+
+    if sy-subrc ne 0.
+      e_result-rc = sy-subrc.
+      e_result-mensagem = | Identificação adicional do paciente não foi encontreada |.
+    else.
+      e_result-rc = sy-subrc.
+    endif.
 
   endmethod.
 
