@@ -86,6 +86,7 @@ at selection-screen.
 
     if p_nomesp is not initial and
        p_nomesh is not initial and
+       sy-ucomm ne 'P_EDIT'    and
        lv_search eq abap_true.
       perform fill_fields_pct.
     endif.
@@ -93,7 +94,6 @@ at selection-screen.
     "se algum botao for pressionado...
     if sy-ucomm eq 'P_INSERT' or
        sy-ucomm eq 'P_EDIT'   or
-       sy-ucomm eq 'P_INSERT' or
        sy-ucomm eq 'P_READ'.
       perform field_pct_validations. "validacao de campos
     endif.
@@ -107,7 +107,7 @@ at selection-screen.
         when 'P_INSERT'.
           perform insert_paciente.
         when 'P_EDIT'.
-          message 'edit'  type 'I' display like 'S'.
+          perform edit_paciente.
         when 'P_READ'.
           message 'read'   type 'I' display like 'S'.
       endcase.
