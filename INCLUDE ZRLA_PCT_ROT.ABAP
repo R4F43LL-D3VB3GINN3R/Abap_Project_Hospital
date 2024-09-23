@@ -7,48 +7,6 @@
 
 form edit_paciente.
 
-  clear: ls_paciente, ls_contactos, ls_docs, ls_enderecos, ls_info.
-
-  "paciente
-  ls_paciente-nome_paciente        = p_nomep.
-  ls_paciente-sexo                 = p_sexop.
-  ls_paciente-data_nascimento      = p_datanp.
-  ls_paciente-estado_civil         = p_estcv.
-
-  "contactos do paciente
-  ls_contactos-telefone_principal  = p_tel1.
-  ls_contactos-telefone_secundario = p_tel2.
-  ls_contactos-email_paciente      = p_mailp.
-  ls_contactos-contacto_emergencia = p_ct_em.
-  ls_contactos-nome_contacto_e     = p_nm_em.
-
-  "documentos do paciente
-  ls_docs-nif                      = p_nifp.
-  ls_docs-cartao_cidadao           = p_cc.
-  ls_docs-numero_utente            = p_utente.
-  ls_docs-subsistema_saude         = p_sub_ss.
-  ls_docs-numero_seguro            = p_nsecp.
-  ls_docs-validade_seguro          = p_valsec.
-
-  "localizacao do paciente
-  ls_enderecos-morada_paciente     = p_mordp.
-  ls_enderecos-codigo_postal       = p_codpst.
-  ls_enderecos-concelho            = p_cclh.
-  ls_enderecos-nacionalidade       = p_nacio.
-
-  "informacoes do paciente
-  ls_info-peso                     = p_peso.
-  ls_info-altura                   = p_alt.
-  ls_info-data_inscricao           = p_dt_ins.
-  ls_info-ultima_consulta          = p_ultc.
-  ls_info-tipo_sangue              = p_ultc.
-  ls_info-alergias                 = p_alrg.
-  ls_info-doencas_cronicas         = p_dncc.
-  ls_info-medicacao_atual          = p_medc.
-  ls_info-historico_cirurgico      = p_hstc.
-  ls_info-habitos_drogas           = p_hbtd.
-  ls_info-observacoes              = p_obsp.
-
   "cria objeto de classe.
   create object ol_paciente
     exporting
@@ -248,7 +206,7 @@ form get_pct_data.
   ls_contactos-nome_contacto_e     = p_nm_em.
 
   clear ls_docs.
-  ls_docs-nif = p_nifp.
+  ls_docs-nif                      = p_nifp.
   ls_docs-cartao_cidadao           = p_cc.
   ls_docs-numero_utente            = p_utente.
   ls_docs-subsistema_saude         = p_sub_ss.
