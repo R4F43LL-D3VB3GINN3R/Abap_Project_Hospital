@@ -366,7 +366,7 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
        and tipo_sangue         eq @ls_info-tipo_sangue
        and alergias            eq @ls_info-alergias
        and doencas_cronicas    eq @ls_info-doencas_cronicas
-       and medicacao_atual     eq @ls_info-medicacao_atualac
+       and medicacao_atual     eq @ls_info-medicacao_atual
        and historico_cirurgico eq @ls_info-historico_cirurgico
        and habitos_drogas      eq @ls_info-habitos_drogas
        and observacoes         eq @ls_info-observacoes.
