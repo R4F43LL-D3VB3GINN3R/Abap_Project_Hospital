@@ -136,6 +136,7 @@ endform.
 
 form run_alv_tree.
 
+  sort it_data_tree by nome_hospital ascending. "ps - nao esquecer de ordenar a tabela
   "criacao da tree e seus respectivos nodes
   loop at it_data_tree into data(wa_data).
 
@@ -149,6 +150,7 @@ form run_alv_tree.
       obj_node_hosp = obj_nodes->add_node( related_node = ' ' " node raiz
                                            text = lv_text
                                            relationship = ' ' ).
+
     endon.
 
     data(lv_hosp_key) = obj_node_hosp->get_key( ). "guarda o node do hospital
