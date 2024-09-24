@@ -219,7 +219,7 @@ form run_alv_tree.
                                          text = lv_text
                                          relationship = cl_gui_column_tree=>relat_last_child ).
 
-    data(lv_document_key) = obj_node_docs->get_key( ). "guarda o node do contacto
+    data(lv_document_key) = obj_node_docs->get_key( ). "guarda o node dos documentos
 
     "--------------- // ---------------"
 
@@ -270,7 +270,7 @@ form run_alv_tree.
                                               text = lv_text
                                               relationship = cl_gui_column_tree=>relat_last_child ).
 
-    data(lv_enderecos_key) = obj_node_enderecos->get_key( ). "guarda o node do contacto
+    data(lv_enderecos_key) = obj_node_enderecos->get_key( ). "guarda o node dos enderecos
 
     "--------------- // ---------------"
 
@@ -309,48 +309,48 @@ form run_alv_tree.
                                           text = lv_text
                                           relationship = cl_gui_column_tree=>relat_last_child ).
 
-    data(lv_info_key) = obj_node_infos->get_key( ). "guarda o node do contacto
+    data(lv_info_key) = obj_node_infos->get_key( ). "guarda o node das informacoes pessoais
 
     "--------------- // ---------------"
 
     lv_text = 'Peso'.
-    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoas
+    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-peso
                                           relationship = cl_gui_column_tree=>relat_first_child ).
 
     lv_text = 'Altura'.
-    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoas
+    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-altura
                                           relationship = cl_gui_column_tree=>relat_last_child ).
 
     lv_text = 'Data de Inscrição'.
-    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoas
+    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-data_inscricao
                                           relationship = cl_gui_column_tree=>relat_last_child ).
 
     lv_text = 'Última Consulta'.
-    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoas
+    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-ultima_consulta
                                           relationship = cl_gui_column_tree=>relat_last_child ).
 
     lv_text = 'Tipo Sanguíneo'.
-    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoas
+    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-tipo_sangue
                                           relationship = cl_gui_column_tree=>relat_last_child ).
 
     lv_text = 'Alergias'.
-    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoas
+    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-alergias
                                           relationship = cl_gui_column_tree=>relat_last_child ).
 
     lv_text = 'Doenças Crônicas'.
-    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoas
+    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-doencas_cronicas
                                           relationship = cl_gui_column_tree=>relat_last_child ).
@@ -362,25 +362,24 @@ form run_alv_tree.
                                           relationship = cl_gui_column_tree=>relat_last_child ).
 
     lv_text = 'Histórico Cirúrgico'.
-    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoas
+    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-historico_cirurgico
                                           relationship = cl_gui_column_tree=>relat_last_child ).
 
     lv_text = 'Hábitos Drogas'.
-    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoas
+    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-habitos_drogas
                                           relationship = cl_gui_column_tree=>relat_last_child ).
 
     lv_text = 'Observações Adicionais'.
-    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoas
+    obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-observacoes
                                           relationship = cl_gui_column_tree=>relat_last_child ).
 
     "INFORMAÇÕES PESSOAIS -------------------------------------------------------------------------
-
 
   endloop.
 endform.
