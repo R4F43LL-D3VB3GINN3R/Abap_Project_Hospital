@@ -83,8 +83,9 @@ form alv_tree_setup.
   "opcoes do cabecalho.
   obj_settings = obj_tree->get_tree_settings( ).
   obj_settings->set_header( 'Hospitais / Pacientes' ).
-  obj_settings->set_hierarchy_header( 'Hospital' ).
+  obj_settings->set_hierarchy_header( 'Hospitais' ).
   obj_settings->set_hierarchy_tooltip( 'Hospital' ).
+  obj_settings->set_hierarchy_icon( '@3Z@' ).
   obj_settings->set_hierarchy_size( 35 ).
 
   "leitura dos nodes
@@ -195,13 +196,11 @@ form run_alv_tree.
                                              text = lv_text
                                              data_row = wa_data-email_paciente
                                              relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Número Emergência'.
     obj_node_contacto = obj_nodes->add_node( related_node = lv_contact_key "relacionado ao contacto
                                              text = lv_text
                                              data_row = wa_data-contacto_emergencia
                                              relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Contacto Emergência'.
     obj_node_contacto = obj_nodes->add_node( related_node = lv_contact_key "relacionado ao contacto
                                              text = lv_text
@@ -228,31 +227,26 @@ form run_alv_tree.
                                          text = lv_text
                                          data_row = wa_data-nif
                                          relationship = cl_gui_column_tree=>relat_first_child ).
-
     lv_text = 'Cartão Cidadão'.
     obj_node_docs = obj_nodes->add_node( related_node = lv_document_key "relacionado aos documentos
                                          text = lv_text
                                          data_row = wa_data-cartao_cidadao
                                          relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Numero do Utente'.
     obj_node_docs = obj_nodes->add_node( related_node = lv_document_key "relacionado aos documentos
                                          text = lv_text
                                          data_row = wa_data-numero_utente
                                          relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Subsistema de Saúde'.
     obj_node_docs = obj_nodes->add_node( related_node = lv_document_key "relacionado aos documentos
                                          text = lv_text
                                          data_row = wa_data-subsistema_saude
                                          relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Número do Seguro'.
     obj_node_docs = obj_nodes->add_node( related_node = lv_document_key "relacionado aos documentos
                                          text = lv_text
                                          data_row = wa_data-numero_seguro
                                          relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Validade do Seguro'.
     obj_node_docs = obj_nodes->add_node( related_node = lv_document_key "relacionado aos documentos
                                          text = lv_text
@@ -279,19 +273,16 @@ form run_alv_tree.
                                               text = lv_text
                                               data_row = wa_data-morada_paciente
                                               relationship = cl_gui_column_tree=>relat_first_child ).
-
     lv_text = 'Código Postal'.
     obj_node_enderecos = obj_nodes->add_node( related_node = lv_enderecos_key "relacionado ao endereço
                                               text = lv_text
                                               data_row = wa_data-codigo_postal
                                               relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Concelho'.
     obj_node_enderecos = obj_nodes->add_node( related_node = lv_enderecos_key "relacionado ao endereço
                                               text = lv_text
                                               data_row = wa_data-concelho
                                               relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Nacionalidade'.
     obj_node_enderecos = obj_nodes->add_node( related_node = lv_enderecos_key "relacionado ao endereço
                                               text = lv_text
@@ -318,61 +309,51 @@ form run_alv_tree.
                                           text = lv_text
                                           data_row = wa_data-peso
                                           relationship = cl_gui_column_tree=>relat_first_child ).
-
     lv_text = 'Altura'.
     obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-altura
                                           relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Data de Inscrição'.
     obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-data_inscricao
                                           relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Última Consulta'.
     obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-ultima_consulta
                                           relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Tipo Sanguíneo'.
     obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-tipo_sangue
                                           relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Alergias'.
     obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-alergias
                                           relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Doenças Crônicas'.
     obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-doencas_cronicas
                                           relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Medicação Atual'.
     obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoas
                                           text = lv_text
                                           data_row = wa_data-medicacao_atual
                                           relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Histórico Cirúrgico'.
     obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-historico_cirurgico
                                           relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Hábitos Drogas'.
     obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
                                           data_row = wa_data-habitos_drogas
                                           relationship = cl_gui_column_tree=>relat_last_child ).
-
     lv_text = 'Observações Adicionais'.
     obj_node_infos = obj_nodes->add_node( related_node = lv_info_key "relacionado às informacoes pessoais
                                           text = lv_text
