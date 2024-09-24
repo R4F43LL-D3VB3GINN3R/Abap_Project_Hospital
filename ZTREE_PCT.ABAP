@@ -5,7 +5,7 @@
 *&---------------------------------------------------------------------*
 report ztree_pct.
 
-"estrutura principal
+"estrutura dos nodes
 types: begin of wa_struct,
          nome_hospital       type zhospitais-nome_hospital,
          nome_paciente       type zpacientes-nome_paciente,
@@ -43,7 +43,7 @@ types: begin of wa_struct,
 
 "estrutura do alv tree e por onde começa a tree
 types: begin of wa_struct2,
-         nome_paciente type zpacientes-nome_paciente,
+         informacoes_pct type zinfop,
        end of wa_struct2.
 
 "tabelas internas
