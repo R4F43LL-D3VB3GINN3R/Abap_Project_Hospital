@@ -23,6 +23,14 @@ module pai_alv input.
 
 endmodule.
 
+form handle_hotspot_click using p_e_row_id
+                                p_e_column_id
+                                p_es_row_no.
+
+ break-point.
+
+endform.
+
 form fill_dropdown_alv.
 
   refresh it_dropdown_alv.
