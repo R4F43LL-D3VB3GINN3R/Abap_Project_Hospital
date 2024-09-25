@@ -1,13 +1,15 @@
 *&---------------------------------------------------------------------*
 *& Include          ZRLA_SCREENS
 *&---------------------------------------------------------------------*
+*reference link: https://github.com/R4F43LL-D3VB3GINN3R/Abap_Project_Hospital/blob/main/INCLUDE%20ZRLA_ZRLA_SCREENS.ABAP
 *&---------------------------------------------------------------------*
 "TELA DE PACIENTES
 
 "TELAS QUE RECEBEM AS SUBTELAS
 selection-screen: begin of tabbed block tb1 for 40 lines.
 selection-screen: tab (20) tab1 user-command tab1 default screen 100, "TELA DE HOSPITAIS
-                  tab (20) tab2 user-command tab2 default screen 101. "TELA DE PACIENTES
+                  tab (20) tab2 user-command tab2 default screen 101, "TELA DE PACIENTES
+                  tab (20) tab3 user-command tab3 default screen 103. "TELA DE FUNCIONARIOS
 selection-screen: end of block tb1.
 
 *include zrla_screen_hospital.
@@ -137,14 +139,14 @@ selection-screen: begin of block p3 with frame title text-051.
 
 "ZPACIENTES
 "-----------------------
-*ID_PACIENTE      INT4
-*ID_HOSPITAL      INT4
-*NOME_PACIENTE    CHAR50
-*DATA_NASCIMENTO  DATS
+*ID_PACIENTE       INT4
+*ID_HOSPITAL       INT4
+*NOME_PACIENTE     CHAR50
+*DATA_NASCIMENTO   DATS
 *SEXO              CHAR1
-*ESTADO_CIVIL     CHAR15
-"DATA_ALTERACAO   DATS
-"ALTERADO_POR     UNAME
+*ESTADO_CIVIL      CHAR15
+"DATA_ALTERACAO    DATS
+"ALTERADO_POR      UNAME
 "-----------------------
 
 parameters: p_nomep  type zpacientes-nome_paciente,                             "nome do paciente
@@ -155,15 +157,15 @@ selection-screen: end of block p3.
 
 "ZPAC_CONTACTOS
 "----------------------------
-*ID_CONTACTO          INT4
-*ID_PACIENTE          INT4
+*ID_CONTACTO           INT4
+*ID_PACIENTE           INT4
 *TELEFONE_PRINCIPAL    CHAR9
-*TELEFONE_SECUNDARIO  CHAR9
+*TELEFONE_SECUNDARIO   CHAR9
 *EMAIL_PACIENTE        CHAR20
-*CONTACTO_EMERGENCIA  CHAR9
-*NOME_CONTACTO_E      CHAR50
-"DATA_ALTERACAO       DATS
-"ALTERADO_POR         UNAME
+*CONTACTO_EMERGENCIA   CHAR9
+*NOME_CONTACTO_E       CHAR50
+"DATA_ALTERACAO        DATS
+"ALTERADO_POR          UNAME
 "----------------------------
 
 selection-screen: begin of block p4 with frame title text-052.
@@ -177,15 +179,15 @@ selection-screen: end of block p4.
 "ZPAC_DOCS
 "-----------------------
 *ID_DOCUMENTO      INT4
-*ID_PACIENTE      INT4
-*NIF              CHAR9
+*ID_PACIENTE       INT4
+*NIF               CHAR9
 *CARTAO_CIDADAO    CHAR9
-*NUMERO_UTENTE    CHAR9
+*NUMERO_UTENTE     CHAR9
 *SUBSISTEMA_SAUDE  CHAR4
-*NUMERO_SEGURO    CHAR10
-*VALIDADE_SEGURO  DATS
-"DATA_ALTERACAO   DATS
-"ALTERADO_POR     UNAME
+*NUMERO_SEGURO     CHAR10
+*VALIDADE_SEGURO   DATS
+"DATA_ALTERACAO    DATS
+"ALTERADO_POR      UNAME
 "-----------------------
 
 selection-screen: begin of block p5 with frame title text-053.
@@ -200,11 +202,11 @@ selection-screen: end of block p5.
 "ZPAC_ENDERECOS
 "-----------------------
 *ID_LOCALIZACAO   INT4
-*ID_PACIENTE     INT4
-*MORADA_PACIENTE CHAR50
-*CODIGO_POSTAL   CHAR8
+*ID_PACIENTE      INT4
+*MORADA_PACIENTE  CHAR50
+*CODIGO_POSTAL    CHAR8
 *CONCELHO         CHAR50
-*NACIONALIDADE   CHAR20
+*NACIONALIDADE    CHAR20
 "DATA_ALTERACAO   DATS
 "ALTERADO_POR     UNAME
 "-----------------------
@@ -219,20 +221,20 @@ selection-screen: end of block p6.
 "ZPAC_INFOPAC
 "-----------------------------
 *ID_INFO_PACIENTE     INT4
-*ID_PACIENTE         INT4
-*PESO                DECIMALS
-*ALTURA              DECIMALS
+*ID_PACIENTE          INT4
+*PESO                 DECIMALS
+*ALTURA               DECIMALS
 *DATA_INSCRICAO       DATS
-*ULTIMA_CONSULTA     DATS
-*TIPO_SANGUE         CHAR3
+*ULTIMA_CONSULTA      DATS
+*TIPO_SANGUE          CHAR3
 *ALERGIAS             CHAR255
 *DOENCAS_CRONICAS     CHAR255
-*MEDICACAO_ATUAL     CHAR255
-*HISTORICO_CIRURGICO CHAR100
+*MEDICACAO_ATUAL      CHAR255
+*HISTORICO_CIRURGICO  CHAR100
 *HABITOS_DROGAS       CHAR100
-*OBSERVACOES         CHAR255
-"DATA_ALTERACAO      DATS
-"ALTERADO_POR        UNAME
+*OBSERVACOES          CHAR255
+"DATA_ALTERACAO       DATS
+"ALTERADO_POR         UNAME
 "-----------------------------
 
 selection-screen: begin of block p7 with frame title text-055.
@@ -259,4 +261,9 @@ selection-screen: end of block p8.
 selection-screen: end of block p1.
 selection-screen: end of screen 101.
 
-controls mytabstrip type tabstrip.
+"------------------------------------------------------------------------------------------------------
+"TELA DE RELATORIOS
+
+selection-screen: begin of screen 102 as subscreen.
+
+selection-screen: end of screen 102.
