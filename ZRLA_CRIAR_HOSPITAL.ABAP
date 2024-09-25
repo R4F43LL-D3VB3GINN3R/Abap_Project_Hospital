@@ -16,17 +16,18 @@ include zrla_pct_top.
 include zrla_pct_rot.
 
 "CLASSE PARA MANIPULACAO DE EVENTOS EM ALV.
-INCLUDE zcl_event_handler.
+include zcl_event_handler.
 
 "ALV CONTAINER
 include zrla_criar_hospital_pbo_alvo01.
 include zrla_criar_hospital_pai_alvi01.
 
 at selection-screen output.
+
 at selection-screen.
 
-"------------------------------------------------------------------------------------------------------
-"SCREEN 100 - HOSPITAIS
+  "------------------------------------------------------------------------------------------------------
+  "SCREEN 100 - HOSPITAIS
 
   if sy-dynnr = 100.
 
@@ -71,8 +72,8 @@ at selection-screen.
 
   endif.
 
-"------------------------------------------------------------------------------------------------------
-"SCREEN 101 - PACIENTES
+  "------------------------------------------------------------------------------------------------------
+  "SCREEN 101 - PACIENTES
 
   if sy-dynnr = 101.
 
