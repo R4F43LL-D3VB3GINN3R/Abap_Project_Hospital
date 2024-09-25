@@ -1,7 +1,7 @@
 *&---------------------------------------------------------------------*
 *& Report ZRLA_CRIAR_HOSPITAL
 *&---------------------------------------------------------------------*
-*&
+*&reference link: https://github.com/R4F43LL-D3VB3GINN3R/Abap_Project_Hospital/blob/main/ZRLA_CRIAR_HOSPITAL.ABAP
 *&---------------------------------------------------------------------*
 report zrla_criar_hospital.
 
@@ -15,12 +15,15 @@ include zrla_hosp_alv.
 include zrla_pct_top.
 include zrla_pct_rot.
 
-at selection-screen output.
+"ALV CONTAINER
+include zrla_criar_hospital_pbo_alvo01.
+include zrla_criar_hospital_pai_alvi01.
 
+at selection-screen output.
 at selection-screen.
 
-  "------------------------------------------------------------------------------------------------------
-  "SCREEN 100
+"------------------------------------------------------------------------------------------------------
+"SCREEN 100 - HOSPITAIS
 
   if sy-dynnr = 100.
 
@@ -31,9 +34,7 @@ at selection-screen.
 
     "se algum botao for pressionado...
     if sy-ucomm eq 'INSERT' or
-       sy-ucomm eq 'EDIT' or
-       sy-ucomm eq 'INSERT' or
-       sy-ucomm eq 'READ'.
+       sy-ucomm eq 'EDIT'.
       perform field_validations. "validacao de campos
     endif.
 
@@ -55,6 +56,8 @@ at selection-screen.
           perform update_hospital.   "editar
         when 'READ'.
           perform display_hospitais. "exibe os hospitais em alv.´
+        when 'BACK'.
+          leave program.
       endcase.
 
       "se houver algum campo invalidade
@@ -65,8 +68,8 @@ at selection-screen.
 
   endif.
 
-  "------------------------------------------------------------------------------------------------------
-  "SCREEN 101
+"------------------------------------------------------------------------------------------------------
+"SCREEN 101 - PACIENTES
 
   if sy-dynnr = 101.
 
@@ -93,8 +96,7 @@ at selection-screen.
 
     "se algum botao for pressionado...
     if sy-ucomm eq 'P_INSERT' or
-       sy-ucomm eq 'P_EDIT'   or
-       sy-ucomm eq 'P_READ'.
+       sy-ucomm eq 'P_EDIT'.
       perform field_pct_validations. "validacao de campos
     endif.
 
@@ -109,7 +111,9 @@ at selection-screen.
         when 'P_EDIT'.
           perform edit_paciente.
         when 'P_READ'.
-          message 'read'   type 'I' display like 'S'.
+          call transaction 'ZPCTREE'.
+        when 'BACK'.
+          leave program.
       endcase.
 
       "se houver algum campo invalidade
@@ -124,8 +128,14 @@ at selection-screen.
   "INICIALIZACAO DE DADOS
 
 initialization.
+
+  set pf-status 'MAIN_REPORT'.
+
   perform fill_dropdown_names. "preenche as dropdowns da tela 100.
   perform fill_hosp_dropdown_names. "preenche as dropdowns da tela 101.
+  perform fill_dropdown_alv. "preenche a dropdown da tela 103.
 
+  "nomes das tabs
   tab1 = '@0U@' && 'Hospitais'.
   tab2 = '@0U@' && 'Pacientes'.
+  tab3 = '@0U@' && 'Gerenciamento'.
