@@ -15,6 +15,9 @@ include zrla_hosp_alv.
 include zrla_pct_top.
 include zrla_pct_rot.
 
+"CLASSE PARA MANIPULACAO DE EVENTOS EM ALV.
+INCLUDE zcl_event_handler.
+
 "ALV CONTAINER
 include zrla_criar_hospital_pbo_alvo01.
 include zrla_criar_hospital_pai_alvi01.
