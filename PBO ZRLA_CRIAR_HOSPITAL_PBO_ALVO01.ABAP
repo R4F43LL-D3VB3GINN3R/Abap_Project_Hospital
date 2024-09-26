@@ -40,4 +40,14 @@ module pbo_alv output.
         ls_fieldcat type lvc_s_fcat, "estrutura do fieldcatalog
         ls_layout   type lvc_s_layo. "estrutura do layout
 
+  types: begin of wa_struct_pct,
+    id_paciente type zpacientes-id_paciente,
+  end of wa_struct_pct.
+
+  data: it_paciente103 type table of wa_struct_pct. "tabela de ids de pacientes.
+
+  data ol_event_handler type ref to zcl_event_handler. "instancia da classe de eventos
+
+  data id_hotspot type zpacientes-id_paciente. "recebe o id do hotspot
+
 endmodule.
