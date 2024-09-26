@@ -1,7 +1,7 @@
 *&---------------------------------------------------------------------*
 *& Include          ZRLA_HOSP_ROT
 *&---------------------------------------------------------------------*
-
+"reference link: https://github.com/R4F43LL-D3VB3GINN3R/Abap_Project_Hospital/blob/main/INCLUDE%20ZRLA_HOSP_ROT.ABAP
 *"------------------------------------------------------------------------------------------------------
 *"ROTINAS
 
@@ -31,13 +31,6 @@ form field_validations.
   elseif '@' cn p_mail.
     return_validation-rc = 1.
     return_validation-mensagem = | O campo Email deve conter @ no endereço. |.
-    return.
-  endif.
-
-  "se todas as checkboxes estiverem vazias...
-  if lv_spec is initial.
-    return_validation-rc = 1.
-    return_validation-mensagem = | Prencha as informações sobre Especializações. |.
     return.
   endif.
 
