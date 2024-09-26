@@ -1,3 +1,5 @@
+"reference link: https://github.com/R4F43LL-D3VB3GINN3R/Abap_Project_Hospital/blob/main/Classes/ZCL_PACIENTE.ABAP
+
 class zcl_paciente definition
   public
   final
@@ -266,7 +268,7 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
       return.
     endif.
 
-    "atribui os ids do paciente nas estruturas
+    "atribui os ids do paciente às estruturas
     ls_contactos-id_paciente = ls_paciente-id_paciente.
     ls_docs-id_paciente      = ls_paciente-id_paciente.
     ls_enderecos-id_paciente = ls_paciente-id_paciente.
@@ -420,8 +422,22 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
       concatenate 'Alterações em:' msg 'do Paciente' ls_paciente-nome_paciente into msg separated by space.
       e_result-mensagem = msg.
     else.
-      e_result-mensagem = | Não houveram alterações |.
+      e_result-mensagem = | Não foi possível realizar as alterações |.
     endif.
+
+    data: ol_mensagens type ref to zcl_mensagens. "instancia da classe de mensagens
+    create object ol_mensagens.
+
+    data: date_to_msg type zhistorico_pct-data_msg. "recebe a data da alteracao
+    date_to_msg = sy-datum. "recebe a data atual
+
+    "alimenta o historico
+    ol_mensagens->set_msg(
+      exporting
+        id_pct   = ls_paciente-id_paciente    " ID do Paciente
+        mensagem = e_result-mensagem          " Mensagem
+        data_msg = date_to_msg                " Data da Mensagem
+    ).
 
   endmethod.
 
@@ -643,16 +659,30 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
       rollback work.
     endif.
 
-    "limpa as estruturas
-    clear: ls_paciente, ls_contactos, ls_docs, ls_enderecos, ls_info.
-
     if sy-subrc eq 0.
       e_result-rc = sy-subrc.
-      e_result-mensagem = | O Paciente foi cadastrado com sucesso. |.
+      e_result-mensagem = | O Paciente { ls_paciente-nome_paciente }foi cadastrado com sucesso. |.
     else.
       e_result-rc = sy-subrc.
       e_result-mensagem = | Não foi possível cadastrar o Paciente. |.
     endif.
+
+    data: ol_mensagens type ref to zcl_mensagens. "instancia da classe de mensagens
+    create object ol_mensagens.
+
+    data: date_to_msg type zhistorico_pct-data_msg. "recebe a data da alteracao
+    date_to_msg = sy-datum. "recebe a data atual
+
+    "alimenta o historico
+    ol_mensagens->set_msg(
+      exporting
+        id_pct   = ls_paciente-id_paciente    " ID do Paciente
+        mensagem = e_result-mensagem          " Mensagem
+        data_msg = date_to_msg                " Data da Mensagem
+    ).
+
+    "limpa as estruturas
+    clear: ls_paciente, ls_contactos, ls_docs, ls_enderecos, ls_info.
 
   endmethod.
 ENDCLASS.
