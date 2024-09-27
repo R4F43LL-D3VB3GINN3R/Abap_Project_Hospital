@@ -7,8 +7,6 @@
 *       text
 *----------------------------------------------------------------------*
 
-"PS -- ORGANIZAR CODIGO DOS FORMS E HORA NA TABELA
-
 module pai_alv input.
 
   "se estiver na tela 103...
