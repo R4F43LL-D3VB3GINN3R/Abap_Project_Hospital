@@ -264,7 +264,7 @@ form build_alv.
     exceptions
       others          = 1.
 
-  " Atualiza o display
+  "atualiza o alv
   call method ol_alvgrid->refresh_table_display
     exceptions
       others = 1.
