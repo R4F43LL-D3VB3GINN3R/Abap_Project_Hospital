@@ -223,9 +223,9 @@ form get_data_hst.
           month type string,
           day   type string.
 
-    year = ls_hst_alv-data_msg+0(4).
+    year  = ls_hst_alv-data_msg+0(4).
     month = ls_hst_alv-data_msg+4(2).
-    day = ls_hst_alv-data_msg+6(2).
+    day   = ls_hst_alv-data_msg+6(2).
 
     clear ls_hst_alv-data_msg.
 
@@ -279,6 +279,36 @@ form get_data_alv.
         id_paciente = ls_paciente103-id_paciente. " Id do Paciente
 
     ls_alv = ol_paciente->ls_pct.  "preenche a estrutura com o objeto do paciente
+
+    "formata data e hora
+    data: year  type string,
+          month type string,
+          day   type string.
+
+    year  = ls_alv-data_inscricao+0(4).
+    month = ls_alv-data_inscricao+4(2).
+    day   = ls_alv-data_inscricao+6(2).
+
+    ls_alv-new_data_inscricao = day && '.' && month && '.' && year. "nova data
+
+    year  = ls_alv-data_nascimento+0(4).
+    month = ls_alv-data_nascimento+4(2).
+    day   = ls_alv-data_nascimento+6(2).
+
+    ls_alv-new_data_nascimento = day && '.' && month && '.' && year. "nova data
+
+    year  = ls_alv-validade_seguro+0(4).
+    month = ls_alv-validade_seguro+4(2).
+    day   = ls_alv-validade_seguro+6(2).
+
+    ls_alv-new_validade_seguro = day && '.' && month && '.' && year. "nova data
+
+    year  = ls_alv-ultima_consulta+0(4).
+    month = ls_alv-ultima_consulta+4(2).
+    day   = ls_alv-ultima_consulta+6(2).
+
+    ls_alv-new_ultima_consulta = | { sy-datum date = environment } |.
+
     append ls_alv to it_alv_table. "insere o paciente na tabela
 
     clear ls_alv.
@@ -436,7 +466,7 @@ form prepare_catalog changing it_fieldcat type lvc_t_fcat.
   append ls_fieldcat to it_fieldcat.
 
   clear ls_fieldcat.
-  ls_fieldcat-fieldname = 'DATA_NASCIMENTO'.
+  ls_fieldcat-fieldname = 'NEW_DATA_NASCIMENTO'.
   ls_fieldcat-inttype   = 'C'.
   ls_fieldcat-outputlen = 18.
   ls_fieldcat-coltext   = 'Data de Nascimento'.
@@ -544,7 +574,7 @@ form prepare_catalog changing it_fieldcat type lvc_t_fcat.
   append ls_fieldcat to it_fieldcat.
 
   clear ls_fieldcat.
-  ls_fieldcat-fieldname = 'VALIDADE_SEGURO'.
+  ls_fieldcat-fieldname = 'NEW_VALIDADE_SEGURO'.
   ls_fieldcat-inttype   = 'C'.
   ls_fieldcat-outputlen = 16.
   ls_fieldcat-coltext   = 'Validade do Seguro'.
@@ -607,7 +637,7 @@ form prepare_catalog changing it_fieldcat type lvc_t_fcat.
   append ls_fieldcat to it_fieldcat.
 
   clear ls_fieldcat.
-  ls_fieldcat-fieldname = 'DATA_INSCRICAO'.
+  ls_fieldcat-fieldname = 'NEW_DATA_INSCRICAO'.
   ls_fieldcat-inttype   = 'C'.
   ls_fieldcat-outputlen = 12.
   ls_fieldcat-coltext   = 'Data de Inscrição'.
@@ -616,7 +646,7 @@ form prepare_catalog changing it_fieldcat type lvc_t_fcat.
   append ls_fieldcat to it_fieldcat.
 
   clear ls_fieldcat.
-  ls_fieldcat-fieldname = 'ULTIMA_CONSULTA'.
+  ls_fieldcat-fieldname = 'NEW_ULTIMA_CONSULTA'.
   ls_fieldcat-inttype   = 'C'.
   ls_fieldcat-outputlen = 16.
   ls_fieldcat-coltext   = 'Última Consulta'.
