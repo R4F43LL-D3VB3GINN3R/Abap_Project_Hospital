@@ -307,7 +307,7 @@ form get_data_alv.
     month = ls_alv-ultima_consulta+4(2).
     day   = ls_alv-ultima_consulta+6(2).
 
-    ls_alv-new_ultima_consulta = | { sy-datum date = environment } |.
+    ls_alv-new_ultima_consulta = day && '.' && month && '.' && year. "nova data
 
     append ls_alv to it_alv_table. "insere o paciente na tabela
 
