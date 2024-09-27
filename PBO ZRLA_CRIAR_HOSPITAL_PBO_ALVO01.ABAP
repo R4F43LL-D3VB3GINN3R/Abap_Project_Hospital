@@ -16,6 +16,16 @@ module pbo_alv output.
   data: it_alv_table type table of ol_paciente->wa_pct,
         ls_alv       type ol_paciente->wa_pct.
 
+  "informacoes do historico do paciente
+  types: begin of hst_struct,
+    mensagem type zhistorico_pct-mensagem,
+    data_msg type zhistorico_pct-data_msg,
+    hora     type sy-uzeit,
+  end of hst_struct.
+
+  data: it_hst_alv type table of hst_struct, "tabela de historico
+        ls_hst_alv type hst_struct.          "estrutura de historico
+
   "estrutura com ids e nomes do hospital
   types: begin of wa_ddown,
            id_hospital   type zhospitais-id_hospital,
@@ -30,7 +40,7 @@ module pbo_alv output.
   data: result_103 type zapr_result.
 
   "-----------------------------------------------------------------------------
-  "ALV - CONTAINER
+  "ALV - CONTAINER 1
 
   "dropdown de hospitais
   data in_001 type zhospitais-nome_hospital.
@@ -43,6 +53,7 @@ module pbo_alv output.
         ls_fieldcat type lvc_s_fcat, "estrutura do fieldcatalog
         ls_layout   type lvc_s_layo. "estrutura do layout
 
+  "estrutura que guarda apenas os ids do paciente
   types: begin of wa_struct_pct,
     id_paciente type zpacientes-id_paciente,
   end of wa_struct_pct.
@@ -52,5 +63,16 @@ module pbo_alv output.
   data ol_event_handler type ref to zcl_event_handler. "instancia da classe de eventos
 
   data id_hotspot type zpacientes-id_paciente. "recebe o id do hotspot
+
+  "-----------------------------------------------------------------------------
+  "ALV - CONTAINER 2
+
+  data: ol_alvgrid2     type ref to cl_gui_alv_grid,          "instancia da alv grid
+        ol_container2   type ref to cl_gui_custom_container,  "instancia do container
+        custom_control2 type scrfname.                        "nome do custom control
+
+  data: it_fieldcat2 type lvc_t_fcat, "tabela do fieldcatalog
+        ls_fieldcat2 type lvc_s_fcat, "estrutura do fieldcatalog
+        ls_layout2   type lvc_s_layo. "estrutura do layout
 
 endmodule.
