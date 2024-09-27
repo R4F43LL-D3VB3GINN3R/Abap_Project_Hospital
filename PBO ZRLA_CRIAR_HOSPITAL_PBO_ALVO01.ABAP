@@ -26,6 +26,9 @@ module pbo_alv output.
   data: it_ddown type table of wa_ddown with key id_hospital,
         ls_ddown type wa_ddown.
 
+  "estrutura para retorno de mensagens
+  data: result_103 type zapr_result.
+
   "-----------------------------------------------------------------------------
   "ALV - CONTAINER
 
