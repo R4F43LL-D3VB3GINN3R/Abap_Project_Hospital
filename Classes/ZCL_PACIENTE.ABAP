@@ -18,6 +18,7 @@ class zcl_paciente definition
         nome_paciente       type zpacientes-nome_paciente,
         sexo                type zpacientes-sexo,
         data_nascimento     type zpacientes-data_nascimento,
+        new_data_nascimento type string,
         estado_civil        type zpacientes-estado_civil,
         telefone_principal  type zpac_contactos-telefone_principal,
         telefone_secundario type zpac_contactos-telefone_secundario,
@@ -30,6 +31,7 @@ class zcl_paciente definition
         subsistema_saude    type zpac_docs-subsistema_saude,
         numero_seguro       type zpac_docs-numero_seguro,
         validade_seguro     type zpac_docs-validade_seguro,
+        new_validade_seguro type string,
         morada_paciente     type zpac_enderecos-morada_paciente,
         codigo_postal       type zpac_enderecos-codigo_postal,
         concelho            type zpac_enderecos-concelho,
@@ -37,7 +39,9 @@ class zcl_paciente definition
         peso                type zpac_infopac-peso,
         altura              type zpac_infopac-altura,
         data_inscricao      type zpac_infopac-data_inscricao,
+        new_data_inscricao  type string,
         ultima_consulta     type zpac_infopac-ultima_consulta,
+        new_ultima_consulta type string,
         tipo_sangue         type zpac_infopac-tipo_sangue,
         alergias            type zpac_infopac-alergias,
         doencas_cronicas    type zpac_infopac-doencas_cronicas,
@@ -398,16 +402,19 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
                   observacoes
       from zpac_infopac
       into corresponding fields of @ls_inf
-      where peso              eq @ls_info-peso
-      and altura              eq @ls_info-altura
-      and ultima_consulta     eq @ls_info-ultima_consulta
-      and tipo_sangue         eq @ls_info-tipo_sangue
-      and alergias            eq @ls_info-alergias
-      and doencas_cronicas    eq @ls_info-doencas_cronicas
-      and medicacao_atual     eq @ls_info-medicacao_atual
-      and historico_cirurgico eq @ls_info-historico_cirurgico
-      and habitos_drogas      eq @ls_info-habitos_drogas
-      and observacoes         eq @ls_info-observacoes.
+      where peso                eq @ls_info-peso
+      and altura                eq @ls_info-altura
+      and ultima_consulta       eq @ls_info-ultima_consulta
+      and tipo_sangue           eq @ls_info-tipo_sangue
+      and alergias              eq @ls_info-alergias
+      and doencas_cronicas      eq @ls_info-doencas_cronicas
+      and medicacao_atual       eq @ls_info-medicacao_atual
+      and historico_cirurgico   eq @ls_info-historico_cirurgico
+      and habitos_drogas        eq @ls_info-habitos_drogas
+      and observacoes           eq @ls_info-observacoes.
+
+      data: flag type string.
+      flag = 'no'.
 
     if sy-subrc ne 0.
       e_result-rc = 0.
@@ -415,6 +422,9 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
       ls_info-data_alteracao = sy-datum.
       ls_info-alterado_por   = sy-uname.
       update zpac_infopac from ls_info.
+      if sy-subrc eq 0.
+        flag = 'yes'.
+      endif.
     endif.
 
     "se alguma informacao foi alterada
@@ -428,15 +438,11 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
     data: ol_mensagens type ref to zcl_mensagens. "instancia da classe de mensagens
     create object ol_mensagens.
 
-    data: date_to_msg type zhistorico_pct-data_msg. "recebe a data da alteracao
-    date_to_msg = sy-datum. "recebe a data atual
-
     "alimenta o historico
     ol_mensagens->set_msg(
       exporting
         id_pct   = ls_paciente-id_paciente    " ID do Paciente
         mensagem = e_result-mensagem          " Mensagem
-        data_msg = date_to_msg                " Data da Mensagem
     ).
 
   endmethod.
@@ -476,8 +482,8 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
       from zpacientes           as p
       inner join zpac_docs      as d on d~id_paciente eq p~id_paciente
       inner join zpac_contactos as c on c~id_paciente eq p~id_paciente
-      inner join zpac_infopac   as i on i~id_paciente eq i~id_paciente
-      inner join zpac_enderecos as e on e~id_paciente eq i~id_paciente
+      inner join zpac_infopac   as i on i~id_paciente eq p~id_paciente
+      inner join zpac_enderecos as e on e~id_paciente eq p~id_paciente
       into ( @id_docs, @id_contacto, @id_info, @id_endereco )
       where p~id_paciente eq @id_paciente.
 
@@ -670,15 +676,11 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
     data: ol_mensagens type ref to zcl_mensagens. "instancia da classe de mensagens
     create object ol_mensagens.
 
-    data: date_to_msg type zhistorico_pct-data_msg. "recebe a data da alteracao
-    date_to_msg = sy-datum. "recebe a data atual
-
     "alimenta o historico
     ol_mensagens->set_msg(
       exporting
         id_pct   = ls_paciente-id_paciente    " ID do Paciente
         mensagem = e_result-mensagem          " Mensagem
-        data_msg = date_to_msg                " Data da Mensagem
     ).
 
     "limpa as estruturas
