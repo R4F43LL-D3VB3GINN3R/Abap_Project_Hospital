@@ -85,6 +85,9 @@ form handle_data_changed using ir_data_changed type ref to cl_alv_changed_data_p
     "se houve alteracao...
     if flag_update eq abap_true.
 
+      ls_cell_inf-alterado_por = sy-uname.
+      ls_cell_inf-data_alteracao = sy-datum.
+
       update zpac_infopac from ls_cell_inf. "atualiza a tabela de informacoes
 
       if sy-subrc ne 0.
@@ -246,7 +249,7 @@ form get_data_hst.
 
   endloop.
 
-  sort it_hst_alv by data_msg descending. "ordena por ordem cronologica
+  sort it_hst_alv by data_msg descending hora_msg descending. "ordena por ordem cronologica
 
 endform.
 
