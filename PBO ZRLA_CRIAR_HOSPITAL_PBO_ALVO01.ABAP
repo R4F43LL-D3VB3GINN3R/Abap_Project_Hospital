@@ -20,7 +20,9 @@ module pbo_alv output.
   types: begin of hst_struct,
     mensagem type zhistorico_pct-mensagem,
     data_msg type zhistorico_pct-data_msg,
-    hora     type sy-uzeit,
+    hora_msg type zhistorico_pct-hora_msg,
+    new_date type string, "data formatada
+    new_hour type string, "hora formatada
   end of hst_struct.
 
   data: it_hst_alv type table of hst_struct, "tabela de historico
