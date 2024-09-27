@@ -26,6 +26,8 @@ endmodule.
 
 "--------------------------------------------------------------------------------------------------------------------------
 
+"--------------------------------------------------------------------------------------------------------------------------
+
 form handle_data_changed using ir_data_changed type ref to cl_alv_changed_data_protocol. "atualizacao de celula do alv
 
   data: ls_mod_cell type lvc_s_modi,  "celula modificada
@@ -143,6 +145,10 @@ form handle_hotspot_click using p_e_row_id
   perform build_alv2.   "preenche o container com o historico do paciente
 
 endform.
+
+"--------------------------------------------------------------------------------------------------------------------------
+
+"--------------------------------------------------------------------------------------------------------------------------
 
 form build_alv2.
 
@@ -725,6 +731,10 @@ form prepare_catalog changing it_fieldcat type lvc_t_fcat.
   append ls_fieldcat to it_fieldcat.
 
 endform.
+
+"--------------------------------------------------------------------------------------------------------------------------
+
+"--------------------------------------------------------------------------------------------------------------------------
 
 form prepare_catalog2 changing it_fieldcat2 type lvc_t_fcat..
 
