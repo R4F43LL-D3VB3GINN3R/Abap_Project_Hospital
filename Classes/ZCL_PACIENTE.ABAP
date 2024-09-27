@@ -413,18 +413,12 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
       and habitos_drogas        eq @ls_info-habitos_drogas
       and observacoes           eq @ls_info-observacoes.
 
-      data: flag type string.
-      flag = 'no'.
-
     if sy-subrc ne 0.
       e_result-rc = 0.
       concatenate msg '[Informações Médicas]' into msg separated by space.
       ls_info-data_alteracao = sy-datum.
       ls_info-alterado_por   = sy-uname.
       update zpac_infopac from ls_info.
-      if sy-subrc eq 0.
-        flag = 'yes'.
-      endif.
     endif.
 
     "se alguma informacao foi alterada
