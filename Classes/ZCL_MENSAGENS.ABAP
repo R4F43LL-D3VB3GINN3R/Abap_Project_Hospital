@@ -10,8 +10,7 @@ public section.
   class-methods SET_MSG
     importing
       !ID_PCT type ZPACIENTES-ID_PACIENTE
-      !MENSAGEM type ZAPR_RESULT-MENSAGEM
-      !DATA_MSG type ZHISTORICO_PCT-DATA_MSG .
+      !MENSAGEM type ZAPR_RESULT-MENSAGEM .
 protected section.
 private section.
 ENDCLASS.
@@ -26,7 +25,6 @@ CLASS ZCL_MENSAGENS IMPLEMENTATION.
 * +-------------------------------------------------------------------------------------------------+
 * | [--->] ID_PCT                         TYPE        ZPACIENTES-ID_PACIENTE
 * | [--->] MENSAGEM                       TYPE        ZAPR_RESULT-MENSAGEM
-* | [--->] DATA_MSG                       TYPE        ZHISTORICO_PCT-DATA_MSG
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   method SET_MSG.
 
@@ -47,7 +45,8 @@ CLASS ZCL_MENSAGENS IMPLEMENTATION.
     "o resto da estrutura recebe os parametros
     ls_msg-id_paciente = id_pct.
     ls_msg-mensagem    = mensagem.
-    ls_msg-data_msg    = data_msg.
+    ls_msg-data_msg    = sy-datum.
+    ls_msg-hora_msg    = sy-uzeit.
 
     "verifica se algum parametro foi enviado como vazio
     if ls_msg-id_paciente is initial
