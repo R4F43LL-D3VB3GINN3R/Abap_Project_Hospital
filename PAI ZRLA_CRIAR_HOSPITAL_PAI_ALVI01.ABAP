@@ -29,6 +29,7 @@ form handle_data_changed using ir_data_changed type ref to cl_alv_changed_data_p
         lv_value    type lvc_value.   "valor da alturacao
 
   data: ls_cell_inf type zpac_infopac. "estrutura contento as partes editaveis do alv
+  data: lv_nome_cell type zpacientes-nome_paciente. "nome do paciente
 
   sort ir_data_changed->mt_mod_cells by row_id. "ordena a tabela
 
@@ -46,6 +47,12 @@ form handle_data_changed using ir_data_changed type ref to cl_alv_changed_data_p
       select single *
         from zpac_infopac
         into ls_cell_inf
+        where id_paciente eq ls_pct103-id_paciente.
+
+      "pega o nome do paciente
+      select single nome_paciente
+        from zpacientes
+        into lv_nome_cell
         where id_paciente eq ls_pct103-id_paciente.
 
       "verifica qual celula foi editada do alv
@@ -74,9 +81,44 @@ form handle_data_changed using ir_data_changed type ref to cl_alv_changed_data_p
 
       "se houve alteracao...
       if flag_update eq abap_true.
-        update zpac_infopac from ls_cell_inf. "atualiza a tabela z
+
+        update zpac_infopac from ls_cell_inf. "atualiza a tabela de informacoes
+
+        if sy-subrc ne 0.
+          message | Não foi possível alterar as informações na célula | type 'S' display like 'E'.
+          return.
+        endif.
+
+        "instancia e objeto da classe de mensagens
+        data: ol_msg type ref to zcl_mensagens.
+        create object ol_msg.
+
+        data: date_to_msg type zhistorico_pct-data_msg. "recebe a data da alteracao
+        date_to_msg = sy-datum. "recebe a data atual
+
+        result_103-rc = 0.
+        result_103-mensagem = | 'Alterações nas informações { ls_mod_cell-fieldname } do Paciente' { lv_nome_cell } |.
+
+        "alimenta o historico
+        ol_msg->set_msg(
+          exporting
+            id_pct   = ls_pct103-id_paciente      " ID do Paciente
+            mensagem = result_103-mensagem        " Mensagem
+            data_msg = date_to_msg                " Data da Mensagem
+        ).
+
         flag_update = abap_false. "desativa a flag.
+
+        if result_p-rc ne 0.
+          message result_103-mensagem type 'S' display like 'E'.
+        else.
+          message result_103-mensagem type 'S'.
+        endif.
+
       endif.
+
+      clear: ls_cell_inf, lv_nome_cell.
+      free ol_msg.
 
   endloop.
 
