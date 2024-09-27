@@ -9,7 +9,6 @@
 
 "PS -- ORGANIZAR CODIGO DOS FORMS E HORA NA TABELA
 
-
 module pai_alv input.
 
   "se estiver na tela 103...
@@ -49,82 +48,78 @@ form handle_data_changed using ir_data_changed type ref to cl_alv_changed_data_p
     "busca o id do paciente
     read table it_paciente103 into data(ls_pct103) index ls_mod_cell-row_id.
 
-      "pega a linha referente ao id do paciente
-      select single *
-        from zpac_infopac
-        into ls_cell_inf
-        where id_paciente eq ls_pct103-id_paciente.
+    "pega a linha referente ao id do paciente
+    select single *
+      from zpac_infopac
+      into ls_cell_inf
+      where id_paciente eq ls_pct103-id_paciente.
 
-      "pega o nome do paciente
-      select single nome_paciente
-        from zpacientes
-        into lv_nome_cell
-        where id_paciente eq ls_pct103-id_paciente.
+    "pega o nome do paciente
+    select single nome_paciente
+      from zpacientes
+      into lv_nome_cell
+      where id_paciente eq ls_pct103-id_paciente.
 
-      "verifica qual celula foi editada do alv
-      "sendo ela estidada, trocamos o valor dela na estrutura
-      "ativamos nossa flag
-      case ls_mod_cell-fieldname.
-        when 'ALERGIAS'.
-          ls_cell_inf-alergias = ls_mod_cell-value.
-          flag_update = abap_true.
-        when 'DOENCAS_CRONICAS'.
-          ls_cell_inf-doencas_cronicas = ls_mod_cell-value.
-          flag_update = abap_true.
-        when 'MEDICACAO_ATUAL'.
-          ls_cell_inf-medicacao_atual = ls_mod_cell-value.
-          flag_update = abap_true.
-        when 'HISTORICO_CIRURGICO'.
-          ls_cell_inf-historico_cirurgico = ls_mod_cell-value.
-          flag_update = abap_true.
-        when 'HABITOS_DROGAS'.
-          ls_cell_inf-habitos_drogas = ls_mod_cell-value.
-          flag_update = abap_true.
-        when 'OBSERVACOES'.
-          ls_cell_inf-observacoes = ls_mod_cell-value.
-          flag_update = abap_true.
-      endcase.
+    "verifica qual celula foi editada do alv
+    "sendo ela estidada, trocamos o valor dela na estrutura
+    "ativamos nossa flag
+    case ls_mod_cell-fieldname.
+      when 'ALERGIAS'.
+        ls_cell_inf-alergias = ls_mod_cell-value.
+        flag_update = abap_true.
+      when 'DOENCAS_CRONICAS'.
+        ls_cell_inf-doencas_cronicas = ls_mod_cell-value.
+        flag_update = abap_true.
+      when 'MEDICACAO_ATUAL'.
+        ls_cell_inf-medicacao_atual = ls_mod_cell-value.
+        flag_update = abap_true.
+      when 'HISTORICO_CIRURGICO'.
+        ls_cell_inf-historico_cirurgico = ls_mod_cell-value.
+        flag_update = abap_true.
+      when 'HABITOS_DROGAS'.
+        ls_cell_inf-habitos_drogas = ls_mod_cell-value.
+        flag_update = abap_true.
+      when 'OBSERVACOES'.
+        ls_cell_inf-observacoes = ls_mod_cell-value.
+        flag_update = abap_true.
+    endcase.
 
-      "se houve alteracao...
-      if flag_update eq abap_true.
+    "se houve alteracao...
+    if flag_update eq abap_true.
 
-        update zpac_infopac from ls_cell_inf. "atualiza a tabela de informacoes
+      update zpac_infopac from ls_cell_inf. "atualiza a tabela de informacoes
 
-        if sy-subrc ne 0.
-          message | Não foi possível alterar as informações na célula | type 'S' display like 'E'.
-          return.
-        endif.
-
-        "instancia e objeto da classe de mensagens
-        data: ol_msg type ref to zcl_mensagens.
-        create object ol_msg.
-
-        data: date_to_msg type zhistorico_pct-data_msg. "recebe a data da alteracao
-        date_to_msg = sy-datum. "recebe a data atual
-
-        result_103-rc = 0.
-        result_103-mensagem = | Alterações em: [{ ls_mod_cell-fieldname }] do Paciente' { lv_nome_cell } |.
-
-        "alimenta o historico
-        ol_msg->set_msg(
-          exporting
-            id_pct   = ls_pct103-id_paciente      " ID do Paciente
-            mensagem = result_103-mensagem        " Mensagem
-            data_msg = date_to_msg                " Data da Mensagem
-        ).
-
-        flag_update = abap_false. "desativa a flag.
-
-        if result_p-rc ne 0.
-          message result_103-mensagem type 'S' display like 'E'.
-        else.
-          message result_103-mensagem type 'S'.
-        endif.
-
+      if sy-subrc ne 0.
+        message | Não foi possível alterar as informações na célula | type 'S' display like 'E'.
+        return.
       endif.
 
-      clear: ls_cell_inf, lv_nome_cell.
-      free ol_msg.
+      "instancia e objeto da classe de mensagens
+      data: ol_msg type ref to zcl_mensagens.
+      create object ol_msg.
+
+      result_103-rc = 0.
+      result_103-mensagem = | Alterações em: [{ ls_mod_cell-fieldname }] do Paciente' { lv_nome_cell } |.
+
+      "alimenta o historico
+      ol_msg->set_msg(
+        exporting
+          id_pct   = ls_pct103-id_paciente      " ID do Paciente
+          mensagem = result_103-mensagem        " Mensagem
+      ).
+
+      flag_update = abap_false. "desativa a flag.
+
+      if result_p-rc ne 0.
+        message result_103-mensagem type 'S' display like 'E'.
+      else.
+        message result_103-mensagem type 'S'.
+      endif.
+
+    endif.
+
+    clear: ls_cell_inf, lv_nome_cell.
+    free ol_msg.
 
   endloop.
 
@@ -211,6 +206,8 @@ form get_data_hst.
 
   refresh it_hst_alv.
 
+  data: new_date type char10.
+
   "preenche a tabela interna que será apresentada no alv
   select mensagem
          data_msg
@@ -219,9 +216,45 @@ form get_data_hst.
     into table it_hst_alv
     where id_paciente eq ls_alv-id_paciente.
 
+  "itera sobre a tabela para pegar a data e hora
+  loop at it_hst_alv into ls_hst_alv.
+
+    data: year  type string,
+          month type string,
+          day   type string.
+
+    year = ls_hst_alv-data_msg+0(4).
+    month = ls_hst_alv-data_msg+4(2).
+    day = ls_hst_alv-data_msg+6(2).
+
+    clear ls_hst_alv-data_msg.
+
+    ls_hst_alv-new_date = day && '.' && month && '.' && year. "nova data
+
+    data: hrs type string,
+          min type string,
+          sec type string.
+
+    hrs = ls_hst_alv-hora_msg+0(2).
+    min = ls_hst_alv-hora_msg+2(2).
+    sec = ls_hst_alv-hora_msg+4(2).
+
+    ls_hst_alv-new_hour = hrs && ':' && min && ':' && sec. "nova hora
+
+    modify it_hst_alv from ls_hst_alv. "atualiza a estrutura
+
+    clear: year, month, day.
+    clear: hrs, min, sec.
+
+  endloop.
+
   sort it_hst_alv by data_msg descending. "ordena por ordem cronologica
 
 endform.
+
+"--------------------------------------------------------------------------------------------------------------------------
+
+"--------------------------------------------------------------------------------------------------------------------------
 
 form get_data_alv.
 
@@ -288,6 +321,7 @@ form fill_dropdown_alv.
       exporting
         id     = 'IN_001'
         values = it_dropdown_alv.
+
   endif.
 
 endform.
@@ -674,7 +708,7 @@ form prepare_catalog2 changing it_fieldcat2 type lvc_t_fcat..
   append ls_fieldcat2 to it_fieldcat2.
 
   clear ls_fieldcat2.
-  ls_fieldcat2-fieldname = 'DATA_MSG'.
+  ls_fieldcat2-fieldname = 'NEW_DATE'.
   ls_fieldcat2-inttype   = 'C'.
   ls_fieldcat2-outputlen = 10.
   ls_fieldcat2-coltext   = 'Data'.
@@ -684,7 +718,7 @@ form prepare_catalog2 changing it_fieldcat2 type lvc_t_fcat..
   append ls_fieldcat2 to it_fieldcat2.
 
   clear ls_fieldcat2.
-  ls_fieldcat2-fieldname = 'HORA'.
+  ls_fieldcat2-fieldname = 'NEW_HOUR'.
   ls_fieldcat2-inttype   = 'C'.
   ls_fieldcat2-outputlen = 10.
   ls_fieldcat2-coltext   = 'Hora'.
