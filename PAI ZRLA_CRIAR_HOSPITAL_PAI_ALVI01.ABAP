@@ -6,6 +6,10 @@
 *&---------------------------------------------------------------------*
 *       text
 *----------------------------------------------------------------------*
+
+"PS -- ORGANIZAR CODIGO DOS FORMS E HORA NA TABELA
+
+
 module pai_alv input.
 
   "se estiver na tela 103...
@@ -22,6 +26,8 @@ module pai_alv input.
   endif.
 
 endmodule.
+
+"--------------------------------------------------------------------------------------------------------------------------
 
 form handle_data_changed using ir_data_changed type ref to cl_alv_changed_data_protocol. "atualizacao de celula do alv
 
@@ -97,7 +103,7 @@ form handle_data_changed using ir_data_changed type ref to cl_alv_changed_data_p
         date_to_msg = sy-datum. "recebe a data atual
 
         result_103-rc = 0.
-        result_103-mensagem = | 'Alterações nas informações { ls_mod_cell-fieldname } do Paciente' { lv_nome_cell } |.
+        result_103-mensagem = | Alterações em: [{ ls_mod_cell-fieldname }] do Paciente' { lv_nome_cell } |.
 
         "alimenta o historico
         ol_msg->set_msg(
@@ -124,6 +130,10 @@ form handle_data_changed using ir_data_changed type ref to cl_alv_changed_data_p
 
 endform.
 
+"--------------------------------------------------------------------------------------------------------------------------
+
+"--------------------------------------------------------------------------------------------------------------------------
+
 form handle_hotspot_click using p_e_row_id
                                 p_e_column_id
                                 p_es_row_no.
@@ -133,38 +143,83 @@ form handle_hotspot_click using p_e_row_id
 
   id_hotspot = ls_alv-id_paciente. "recebe o id enviado por hotspot
 
+  perform get_data_hst. "preenche a tabela interna que será apresentada no alv
+  perform build_alv2.   "preenche o container com o historico do paciente
+
 endform.
 
-form fill_dropdown_alv.
+form build_alv2.
 
-  refresh it_dropdown_alv.
+  custom_control2 = 'MAIN_CONTAINER2'. "atribui o container
 
-  "preenche os campos da tabela interna com id e nome
-  select * from zhospitais
-    into corresponding fields of table it_ddown.
+  "se o container ainda nao foi criado...
+  if ol_alvgrid2 is initial.
 
-  if sy-subrc eq 0.
-
-    sort it_ddown by id_hospital. "ordena por id
-
-    data: id_char type char10. "id em char
-
-    "passa os dados da tabela para a tabela da dropdown
-    loop at it_ddown into ls_ddown.
-      clear ls_list.
-      id_char = ls_ddown-id_hospital.
-      ls_dropdown_alv-key = id_char.
-      ls_dropdown_alv-text = ls_ddown-nome_hospital.
-      append ls_dropdown_alv to it_dropdown_alv.
-      clear ls_ddown.
-    endloop.
-
-    "chama a funcao que preenche a dropdown
-    call function 'VRM_SET_VALUES'
+    "cria o container
+    create object ol_container2
       exporting
-        id     = 'IN_001'
-        values = it_dropdown_alv.
+        container_name              = custom_control2
+      exceptions
+        cntl_error                  = 1
+        cntl_system_error           = 2
+        create_error                = 3
+        lifetime_error              = 4
+        lifetime_dynpro_dynpro_link = 5
+        others                      = 6.
+
+    "cria o alvgrid
+    create object ol_alvgrid2
+      exporting
+        i_parent          = ol_container2
+      exceptions
+        error_cntl_create = 1
+        error_cntl_init   = 2
+        error_cntl_link   = 3
+        error_dp_create   = 4
+        others            = 5.
+
   endif.
+
+  "limpa o fieldcatalog
+  clear it_fieldcat2.
+  clear ls_fieldcat2.
+
+  perform prepare_catalog2 changing it_fieldcat2. "prepara o fieldcatalog
+
+  "metodo para receber o container com alv
+  call method ol_alvgrid2->set_table_for_first_display
+    exporting
+      is_layout       = ls_layout2
+    changing
+      it_outtab       = it_hst_alv
+      it_fieldcatalog = it_fieldcat2
+    exceptions
+      others          = 1.
+
+  "atualiza o alv
+  call method ol_alvgrid2->refresh_table_display
+    exceptions
+      others = 1.
+
+endform.
+
+"--------------------------------------------------------------------------------------------------------------------------
+
+"--------------------------------------------------------------------------------------------------------------------------
+
+form get_data_hst.
+
+  refresh it_hst_alv.
+
+  "preenche a tabela interna que será apresentada no alv
+  select mensagem
+         data_msg
+         hora_msg
+    from zhistorico_pct
+    into table it_hst_alv
+    where id_paciente eq ls_alv-id_paciente.
+
+  sort it_hst_alv by data_msg descending. "ordena por ordem cronologica
 
 endform.
 
@@ -199,6 +254,47 @@ form get_data_alv.
   endloop.
 
 endform.
+
+"--------------------------------------------------------------------------------------------------------------------------
+
+"--------------------------------------------------------------------------------------------------------------------------
+
+form fill_dropdown_alv.
+
+  refresh it_dropdown_alv.
+
+  "preenche os campos da tabela interna com id e nome
+  select * from zhospitais
+    into corresponding fields of table it_ddown.
+
+  if sy-subrc eq 0.
+
+    sort it_ddown by id_hospital. "ordena por id
+
+    data: id_char type char10. "id em char
+
+    "passa os dados da tabela para a tabela da dropdown
+    loop at it_ddown into ls_ddown.
+      clear ls_list.
+      id_char = ls_ddown-id_hospital.
+      ls_dropdown_alv-key = id_char.
+      ls_dropdown_alv-text = ls_ddown-nome_hospital.
+      append ls_dropdown_alv to it_dropdown_alv.
+      clear ls_ddown.
+    endloop.
+
+    "chama a funcao que preenche a dropdown
+    call function 'VRM_SET_VALUES'
+      exporting
+        id     = 'IN_001'
+        values = it_dropdown_alv.
+  endif.
+
+endform.
+
+"--------------------------------------------------------------------------------------------------------------------------
+
+"--------------------------------------------------------------------------------------------------------------------------
 
 form build_alv.
 
@@ -270,6 +366,10 @@ form build_alv.
       others = 1.
 
 endform.
+
+"--------------------------------------------------------------------------------------------------------------------------
+
+"--------------------------------------------------------------------------------------------------------------------------
 
 form prepare_catalog changing it_fieldcat type lvc_t_fcat.
 
@@ -560,3 +660,39 @@ form prepare_catalog changing it_fieldcat type lvc_t_fcat.
   append ls_fieldcat to it_fieldcat.
 
 endform.
+
+form prepare_catalog2 changing it_fieldcat2 type lvc_t_fcat..
+
+  clear ls_fieldcat2.
+  ls_fieldcat2-fieldname = 'MENSAGEM'.
+  ls_fieldcat2-inttype   = 'C'.
+  ls_fieldcat2-outputlen = 60.
+  ls_fieldcat2-coltext   = 'Mensagem'.
+  ls_fieldcat2-seltext   = 'Mensagem'.
+  ls_fieldcat2-just      = 'C'.
+  ls_fieldcat2-edit      = 'X'.
+  append ls_fieldcat2 to it_fieldcat2.
+
+  clear ls_fieldcat2.
+  ls_fieldcat2-fieldname = 'DATA_MSG'.
+  ls_fieldcat2-inttype   = 'C'.
+  ls_fieldcat2-outputlen = 10.
+  ls_fieldcat2-coltext   = 'Data'.
+  ls_fieldcat2-seltext   = 'Data'.
+  ls_fieldcat2-just      = 'C'.
+  ls_fieldcat2-edit      = 'X'.
+  append ls_fieldcat2 to it_fieldcat2.
+
+  clear ls_fieldcat2.
+  ls_fieldcat2-fieldname = 'HORA'.
+  ls_fieldcat2-inttype   = 'C'.
+  ls_fieldcat2-outputlen = 10.
+  ls_fieldcat2-coltext   = 'Hora'.
+  ls_fieldcat2-seltext   = 'Hora'.
+  ls_fieldcat2-just      = 'C'.
+  ls_fieldcat2-edit      = 'X'.
+  append ls_fieldcat2 to it_fieldcat2.
+
+endform.
+
+"--------------------------------------------------------------------------------------------------------------------------
