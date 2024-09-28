@@ -1,4 +1,4 @@
-*----------------------------------------------------------------------
+*----------------------------------------------------------------------*
 ***INCLUDE ZRLA_CRIAR_HOSPITAL_PAI_ALVI01.
 *----------------------------------------------------------------------*
 *&---------------------------------------------------------------------*
@@ -212,7 +212,7 @@ endform.
 form get_data_hst.
 
   refresh it_hst_alv.
-
+                                       .
   data: new_date type char10.
 
   "preenche a tabela interna que será apresentada no alv
@@ -226,32 +226,16 @@ form get_data_hst.
   "itera sobre a tabela para pegar a data e hora
   loop at it_hst_alv into ls_hst_alv.
 
-    data: year  type string,
-          month type string,
-          day   type string.
-
-    year  = ls_hst_alv-data_msg+0(4).
-    month = ls_hst_alv-data_msg+4(2).
-    day   = ls_hst_alv-data_msg+6(2).
-
-    clear ls_hst_alv-data_msg.
-
-    ls_hst_alv-new_date = day && '.' && month && '.' && year. "nova data
-
-    data: hrs type string,
-          min type string,
-          sec type string.
-
-    hrs = ls_hst_alv-hora_msg+0(2).
-    min = ls_hst_alv-hora_msg+2(2).
-    sec = ls_hst_alv-hora_msg+4(2).
-
-    ls_hst_alv-new_hour = hrs && ':' && min && ':' && sec. "nova hora
+    "funcao para tratamento de data e hora.
+    call function 'RFC_FORMAT_TIME'
+       EXPORTING
+         time         = ls_hst_alv-data_msg
+         hour         = ls_hst_alv-hora_msg
+      importing
+         time_output  = ls_hst_alv-new_date
+         hour_output  = ls_hst_alv-new_hour.
 
     modify it_hst_alv from ls_hst_alv. "atualiza a estrutura
-
-    clear: year, month, day.
-    clear: hrs, min, sec.
 
   endloop.
 
@@ -287,34 +271,33 @@ form get_data_alv.
 
     ls_alv = ol_paciente->ls_pct.  "preenche a estrutura com o objeto do paciente
 
-    "formata data e hora
-    data: year  type string,
-          month type string,
-          day   type string.
+    "funcao para tratamento de data e hora.
+    call function 'RFC_FORMAT_TIME'
+       EXPORTING
+         time         = ls_alv-data_inscricao
+      importing
+         time_output  = ls_alv-new_data_inscricao.
 
-    year  = ls_alv-data_inscricao+0(4).
-    month = ls_alv-data_inscricao+4(2).
-    day   = ls_alv-data_inscricao+6(2).
+    "funcao para tratamento de data e hora.
+    call function 'RFC_FORMAT_TIME'
+       EXPORTING
+         time         = ls_alv-data_nascimento
+      importing
+         time_output  = ls_alv-new_data_nascimento.
 
-    ls_alv-new_data_inscricao = day && '.' && month && '.' && year. "nova data
+    "funcao para tratamento de data e hora.
+    call function 'RFC_FORMAT_TIME'
+       EXPORTING
+         time         = ls_alv-validade_seguro
+      importing
+         time_output  = ls_alv-new_validade_seguro.
 
-    year  = ls_alv-data_nascimento+0(4).
-    month = ls_alv-data_nascimento+4(2).
-    day   = ls_alv-data_nascimento+6(2).
-
-    ls_alv-new_data_nascimento = day && '.' && month && '.' && year. "nova data
-
-    year  = ls_alv-validade_seguro+0(4).
-    month = ls_alv-validade_seguro+4(2).
-    day   = ls_alv-validade_seguro+6(2).
-
-    ls_alv-new_validade_seguro = day && '.' && month && '.' && year. "nova data
-
-    year  = ls_alv-ultima_consulta+0(4).
-    month = ls_alv-ultima_consulta+4(2).
-    day   = ls_alv-ultima_consulta+6(2).
-
-    ls_alv-new_ultima_consulta = day && '.' && month && '.' && year. "nova data
+    "funcao para tratamento de data e hora.
+    call function 'RFC_FORMAT_TIME'
+       EXPORTING
+         time         = ls_alv-ultima_consulta
+      importing
+         time_output  = ls_alv-new_ultima_consulta.
 
     append ls_alv to it_alv_table. "insere o paciente na tabela
 
