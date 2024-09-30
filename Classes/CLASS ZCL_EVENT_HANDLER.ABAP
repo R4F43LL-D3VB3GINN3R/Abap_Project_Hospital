@@ -11,6 +11,9 @@ class zcl_event_handler definition final.
   public section.
 
     methods:
+      "método para implementar botoes na toolbar do alv
+      handle_toolbar for event toolbar of cl_gui_alv_grid
+        importing e_object e_interactive,
 
       "metodo para mudanca de evento ao duplo clique
       handle_hotspot_click
@@ -36,6 +39,31 @@ class zcl_event_handler implementation.
 
   method handle_data_changed.
     perform handle_data_changed using er_data_changed.
+  endmethod.
+
+  method handle_toolbar.
+
+    data: ls_toolbar type stb_button.
+
+    e_interactive = 'X'. "torna a barra de ferramentas interativa
+
+    clear e_object->mt_toolbar. "limpa a toolbar
+
+    "cria os botoes
+    clear ls_toolbar.
+    ls_toolbar-function  = 'FCT_EXPORT_PDF'.
+    ls_toolbar-icon      = ICON_PDF .
+    ls_toolbar-butn_type = 0.
+    ls_toolbar-text      = 'Enviar PDF'.
+    append ls_toolbar to e_object->mt_toolbar.
+
+    clear ls_toolbar.
+    ls_toolbar-function  = 'FCT_EMAIL_PCT'.
+    ls_toolbar-icon      = ICON_MAIL  .
+    ls_toolbar-butn_type = 0.
+    ls_toolbar-text      = 'Enviar Email'.
+    append ls_toolbar to e_object->mt_toolbar.
+
   endmethod.
 
 endclass.
