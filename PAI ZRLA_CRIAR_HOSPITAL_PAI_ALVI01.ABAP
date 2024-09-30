@@ -1,5 +1,5 @@
 *----------------------------------------------------------------------*
-***INCLUDE ZRLA_CRIAR_HOSPITAL_PAI_ALVI01.
+*INCLUDE ZRLA_CRIAR_HOSPITAL_PAI_ALVI01.
 *----------------------------------------------------------------------*
 *&---------------------------------------------------------------------*
 *&      Module  PAI_ALV  INPUT
@@ -18,11 +18,105 @@ module pai_alv input.
       when 'FCT_PROCURAR'.
         perform get_data_alv.
         perform build_alv.
+      when 'FCT_DOWNLOAD'.
+        perform get_data_excel.
+        perform set_download.
     endcase.
 
   endif.
 
 endmodule.
+"--------------------------------------------------------------------------------------------------------------------------
+
+"--------------------------------------------------------------------------------------------------------------------------
+
+form set_download.
+
+  if lr_data_ref is not initial.
+
+    data(lo_excel) = new zcl_itab_to_excel( ). "instancia da classe
+
+    "chama o método itab_to_xstring para converter a tabela interna em xstring (XLSX)
+    lv_xstring = lo_excel->itab_to_xstring( lr_data_ref ).
+
+    "caixa de dialogo para escolher caminho do download
+    call method cl_gui_frontend_services=>file_save_dialog
+      exporting
+        window_title         = 'Salvar Arquivo XLSX'
+        default_extension    = 'xlsx'
+        file_filter          = 'Arquivos Excel (*.xlsx)|*.xlsx|'
+      changing
+        filename             = lv_filename
+        fullpath             = lv_path
+        path                 = lv_path
+      exceptions
+        cntl_error           = 1
+        error_no_gui         = 2
+        not_supported_by_gui = 3
+        others               = 4.
+      
+    if lv_xstring is not initial.
+      "converte xstring em uma tabela de binario (necessária para download)
+      call function 'SCMS_XSTRING_TO_BINARY'
+        exporting
+          buffer     = lv_xstring
+        tables
+          binary_tab = lt_binary.
+
+      " Baixar o arquivo para o PC
+      call function 'GUI_DOWNLOAD'
+        exporting
+          bin_filesize            = xstrlen( lv_xstring )
+          filename                = lv_filename
+          filetype                = 'BIN'
+        tables
+          data_tab                = lt_binary
+        exceptions
+          file_write_error        = 1
+          no_batch                = 2
+          gui_refuse_filetransfer = 3
+          invalid_type            = 4
+          no_authority            = 5
+          unknown_error           = 6
+          header_not_allowed      = 7
+          separator_not_allowed   = 8
+          filesize_not_allowed    = 9
+          header_too_long         = 10
+          dp_error_create         = 11
+          dp_error_send           = 12
+          dp_error_write          = 13
+          unknown_dp_error        = 14
+          access_denied           = 15
+          dp_out_of_memory        = 16
+          disk_full               = 17
+          dp_timeout              = 18
+          file_not_found          = 19
+          dataprovider_exception  = 20
+          control_flush_error     = 21
+          others                  = 22.
+
+    endif.
+
+  endif.
+
+endform.
+
+"--------------------------------------------------------------------------------------------------------------------------
+
+"--------------------------------------------------------------------------------------------------------------------------
+
+form get_data_excel.
+
+  if it_alv_table is initial.
+    message | Carregue os dados de um paciente antes de baixar um arquivo | type 'S' display like 'E'.
+    return.
+  endif.
+
+  it_csv = it_alv_table.
+
+  get reference of it_csv into lr_data_ref.   "cria a referência para a tabela interna
+
+endform.
 
 "--------------------------------------------------------------------------------------------------------------------------
 
@@ -212,7 +306,7 @@ endform.
 form get_data_hst.
 
   refresh it_hst_alv.
-                                       .
+  .
   data: new_date type char10.
 
   "preenche a tabela interna que será apresentada no alv
@@ -228,12 +322,12 @@ form get_data_hst.
 
     "funcao para tratamento de data e hora.
     call function 'RFC_FORMAT_TIME'
-       EXPORTING
-         time         = ls_hst_alv-data_msg
-         hour         = ls_hst_alv-hora_msg
+      exporting
+        time        = ls_hst_alv-data_msg
+        hour        = ls_hst_alv-hora_msg
       importing
-         time_output  = ls_hst_alv-new_date
-         hour_output  = ls_hst_alv-new_hour.
+        time_output = ls_hst_alv-new_date
+        hour_output = ls_hst_alv-new_hour.
 
     modify it_hst_alv from ls_hst_alv. "atualiza a estrutura
 
@@ -273,31 +367,31 @@ form get_data_alv.
 
     "funcao para tratamento de data e hora.
     call function 'RFC_FORMAT_TIME'
-       EXPORTING
-         time         = ls_alv-data_inscricao
+      exporting
+        time        = ls_alv-data_inscricao
       importing
-         time_output  = ls_alv-new_data_inscricao.
+        time_output = ls_alv-new_data_inscricao.
 
     "funcao para tratamento de data e hora.
     call function 'RFC_FORMAT_TIME'
-       EXPORTING
-         time         = ls_alv-data_nascimento
+      exporting
+        time        = ls_alv-data_nascimento
       importing
-         time_output  = ls_alv-new_data_nascimento.
+        time_output = ls_alv-new_data_nascimento.
 
     "funcao para tratamento de data e hora.
     call function 'RFC_FORMAT_TIME'
-       EXPORTING
-         time         = ls_alv-validade_seguro
+      exporting
+        time        = ls_alv-validade_seguro
       importing
-         time_output  = ls_alv-new_validade_seguro.
+        time_output = ls_alv-new_validade_seguro.
 
     "funcao para tratamento de data e hora.
     call function 'RFC_FORMAT_TIME'
-       EXPORTING
-         time         = ls_alv-ultima_consulta
+      exporting
+        time        = ls_alv-ultima_consulta
       importing
-         time_output  = ls_alv-new_ultima_consulta.
+        time_output = ls_alv-new_ultima_consulta.
 
     append ls_alv to it_alv_table. "insere o paciente na tabela
 
