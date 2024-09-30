@@ -31,7 +31,7 @@ endmodule.
 
 "--------------------------------------------------------------------------------------------------------------------------
 
-form get_data_pdf. "recebe os dados que serao exportados para pdf
+form get_data_pdf. "recebe os dados que serao exportados para pd
 
   refresh lt_rows.
   refresh it_pdf.
@@ -50,6 +50,41 @@ form get_data_pdf. "recebe os dados que serao exportados para pdf
     append ls_pdf to it_pdf.
     clear ls_pdf.
   endloop.
+
+  " Definições para a conversão OTF para PDF
+  data: t_otf  like itcoo occurs 100 with header line,  " Tabela OTF
+        t_pdf  like tline occurs 100 with header line,  " Tabela PDF
+        w_size type i.                                  " Variável para o tamanho do arquivo binário
+
+  "PONTO DE PARADA!!!
+
+  data: lv_bin_file      type xstring,        " Variável para o arquivo binário
+        lv_archive_index type toa_dara,     " Declare a variável do tipo string
+        lt_rows          type table of sy-index, " Para armazenar os índices das linhas selecionadas
+        ls_rows          type sy-index,       " Linha individual
+        lt_otf           type table of itcoo, " Tabela OTF
+        lt_pdf_table     type tlinetab,      " Tabela para os dados PDF
+        pdf_xstring      type xstring,        " XSTRING para o arquivo PDF
+        lv_bin_filesize  type i.             " Tamanho do arquivo binário
+
+  " First you convert the OTF data
+
+  call function 'CONVERT_OTF'
+    exporting
+      format                = 'PDF'
+      max_linewidth         = 132
+    importing
+      bin_filesize          = lv_bin_filesize
+      bin_file              = pdf_xstring
+    tables
+      otf                   = lt_otf
+      lines                 = lt_pdf_table
+    exceptions
+      err_max_linewidth     = 1
+      err_format            = 2
+      err_conv_not_possible = 3
+      err_bad_otf           = 4
+      others                = 5.
 
 endform.
 
