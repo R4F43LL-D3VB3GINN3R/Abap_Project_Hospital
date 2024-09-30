@@ -77,4 +77,13 @@ module pbo_alv output.
         ls_fieldcat2 type lvc_s_fcat, "estrutura do fieldcatalog
         ls_layout2   type lvc_s_layo. "estrutura do layout
 
+  "-----------------------------------------------------------------------------
+  "TABELA INTERNA PARA EXCEL
+
+  data: lt_itcsv    type table of spfli,  "tabela interna
+        lr_data_ref type ref to data,      "referencia para a tabela interna
+        lv_xstring  type xstring,          "recebe xstring
+        lt_binary   type table of x255,    "armazena dados binarios
+        lv_filename type string.           "caminho para arquivo no pc
+
 endmodule.
