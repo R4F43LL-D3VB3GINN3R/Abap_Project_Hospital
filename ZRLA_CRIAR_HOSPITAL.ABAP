@@ -1,9 +1,13 @@
+
+
 *&---------------------------------------------------------------------*
 *& Report ZRLA_CRIAR_HOSPITAL
 *&---------------------------------------------------------------------*
 *&reference link: https://github.com/R4F43LL-D3VB3GINN3R/Abap_Project_Hospital/blob/main/ZRLA_CRIAR_HOSPITAL.ABAP
 *&---------------------------------------------------------------------*
 report zrla_criar_hospital.
+
+set pf-status 'MAIN_STATUS'.
 
 "INCLUDES HOSPITAIS
 include zrla_hosp_top.
@@ -17,6 +21,8 @@ include zrla_pct_rot.
 
 "CLASSE PARA MANIPULACAO DE EVENTOS EM ALV.
 include zcl_event_handler.
+"CLASSE PARA TRANFORMAR TABELA INTERNA EM EXCEL.
+include zcl_itab_to_excel.
 
 "ALV CONTAINER
 include zrla_criar_hospital_pbo_alvo01.
@@ -32,7 +38,7 @@ at selection-screen.
   if sy-dynnr = 100.
 
     "se a dropdown nao estiver vazia
-    if p_nomes is not initial and sy-ucomm ne 'EDIT' and sy-ucomm ne 'INSERT' and sy-ucomm ne 'READ'.
+    if sy-ucomm ne 'EDIT' and sy-ucomm ne 'INSERT' and sy-ucomm ne 'READ'.
       perform fill_fields.
     endif.
 
@@ -132,8 +138,6 @@ at selection-screen.
   "INICIALIZACAO DE DADOS
 
 initialization.
-
-  set pf-status 'MAIN_REPORT'.
 
   perform fill_dropdown_names. "preenche as dropdowns da tela 100.
   perform fill_hosp_dropdown_names. "preenche as dropdowns da tela 101.
