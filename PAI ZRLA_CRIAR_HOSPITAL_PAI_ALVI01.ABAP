@@ -16,11 +16,11 @@ module pai_alv input.
       when 'BACK'.
         leave program.
       when 'FCT_PROCURAR'.
-        perform get_data_alv.
-        perform build_alv.
+        perform get_data_alv. "preenche a tabela do alv principal
+        perform build_alv.    "contrói o fieldcatalog
       when 'FCT_DOWNLOAD'.
-        perform get_data_excel.
-        perform set_download.
+        perform get_data_excel. "preenche a tabela do excel
+        perform set_download.   "download do arquivo excel
     endcase.
 
   endif.
@@ -63,7 +63,7 @@ form set_download.
         tables
           binary_tab = lt_binary.
 
-      " Baixar o arquivo para o PC
+      "baixar a lista de hospitais para o pc
       call function 'GUI_DOWNLOAD'
         exporting
           bin_filesize            = xstrlen( lv_xstring )
@@ -105,10 +105,10 @@ endform.
 
 "--------------------------------------------------------------------------------------------------------------------------
 
-form get_data_excel.
+form get_data_excel. "excel dos pacientes internados no hospital
 
   if it_alv_table is initial.
-    message | Carregue os dados de um paciente antes de baixar um arquivo | type 'S' display like 'E'.
+    message | Carregue os dados do hospital antes de baixar um arquivo | type 'S' display like 'E'.
     return.
   endif.
 
@@ -118,6 +118,12 @@ form get_data_excel.
   it_csv = it_alv_table.
 
   get reference of it_csv into lr_data_ref.   "cria a referência para a tabela interna
+
+  "em caso de download, pegamos o nome do hospital no qual os pacientes estao internados
+  select single h~nome_hospital
+    from zhospitais as h
+    inner join zpacientes as p on h~id_hospital eq p~id_hospital
+    into lv_filename.
 
 endform.
 
@@ -396,6 +402,17 @@ form get_data_alv.
       importing
         time_output = ls_alv-new_ultima_consulta.
 
+    case ls_alv-estado_civil.
+      when 1.
+        ls_alv-new_estado_civil = 'Solteiro'.
+      when 2.
+        ls_alv-new_estado_civil = 'União Estável'.
+      when 3.
+        ls_alv-new_estado_civil = 'Casado'.
+      when 4.
+        ls_alv-new_estado_civil = 'Viúvo'.
+    endcase.
+
     append ls_alv to it_alv_table. "insere o paciente na tabela
 
     clear ls_alv.
@@ -562,7 +579,7 @@ form prepare_catalog changing it_fieldcat type lvc_t_fcat.
   append ls_fieldcat to it_fieldcat.
 
   clear ls_fieldcat.
-  ls_fieldcat-fieldname = 'ESTADO_CIVIL'.
+  ls_fieldcat-fieldname = 'NEW_ESTADO_CIVIL'.
   ls_fieldcat-inttype   = 'C'.
   ls_fieldcat-outputlen = 12.
   ls_fieldcat-coltext   = 'Estado Civil'.
