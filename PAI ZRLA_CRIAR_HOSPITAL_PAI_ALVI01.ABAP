@@ -402,6 +402,7 @@ form get_data_alv.
       importing
         time_output = ls_alv-new_ultima_consulta.
 
+    "tratamento do campo de estado civil
     case ls_alv-estado_civil.
       when 1.
         ls_alv-new_estado_civil = 'Solteiro'.
