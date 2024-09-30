@@ -18,12 +18,12 @@ module pbo_alv output.
 
   "informacoes do historico do paciente
   types: begin of hst_struct,
-    mensagem type zhistorico_pct-mensagem,
-    data_msg type zhistorico_pct-data_msg,
-    hora_msg type zhistorico_pct-hora_msg,
-    new_date type string, "data formatada
-    new_hour type string, "hora formatada
-  end of hst_struct.
+           mensagem type zhistorico_pct-mensagem,
+           data_msg type zhistorico_pct-data_msg,
+           hora_msg type zhistorico_pct-hora_msg,
+           new_date type string, "data formatada
+           new_hour type string, "hora formatada
+         end of hst_struct.
 
   data: it_hst_alv type table of hst_struct, "tabela de historico
         ls_hst_alv type hst_struct.          "estrutura de historico
@@ -57,8 +57,8 @@ module pbo_alv output.
 
   "estrutura que guarda apenas os ids do paciente
   types: begin of wa_struct_pct,
-    id_paciente type zpacientes-id_paciente,
-  end of wa_struct_pct.
+           id_paciente type zpacientes-id_paciente,
+         end of wa_struct_pct.
 
   data: it_paciente103 type table of wa_struct_pct. "tabela de ids de pacientes.
 
@@ -80,10 +80,58 @@ module pbo_alv output.
   "-----------------------------------------------------------------------------
   "TABELA INTERNA PARA EXCEL
 
-  data: lt_itcsv    type table of spfli,  "tabela interna
-        lr_data_ref type ref to data,      "referencia para a tabela interna
-        lv_xstring  type xstring,          "recebe xstring
-        lt_binary   type table of x255,    "armazena dados binarios
-        lv_filename type string.           "caminho para arquivo no pc
+  data: it_csv      type table of ol_paciente->wa_pct, "tabela interna
+        lr_data_ref type ref to data,                  "referencia para a tabela interna
+        lv_xstring  type xstring,                      "recebe xstring
+        lt_binary   type table of x255,                "armazena dados binarios
+        lv_path     type string,                       "caminho selecionado pelo usuário
+        lv_filename type string.                       "caminho para arquivo no pc
+
+  "-----------------------------------------------------------------------------
+  "TABELAS E ESTRUTURAS PARA ARQUIVOS PDF E CAMPOS DE MULTISELEÇÃO
+
+  types: begin of wa_pdf,
+           nome_paciente       type zpacientes-nome_paciente,
+           sexo                type zpacientes-sexo,
+           data_nascimento     type zpacientes-data_nascimento,
+           new_data_nascimento type string,
+           estado_civil        type zpacientes-estado_civil,
+           new_estado_civil    type string,
+           telefone_principal  type zpac_contactos-telefone_principal,
+           telefone_secundario type zpac_contactos-telefone_secundario,
+           email_paciente      type zpac_contactos-email_paciente,
+           contacto_emergencia type zpac_contactos-contacto_emergencia,
+           nome_contacto_e     type zpac_contactos-nome_contacto_e,
+           nif                 type zpac_docs-nif,
+           cartao_cidadao      type zpac_docs-cartao_cidadao,
+           numero_utente       type zpac_docs-numero_utente,
+           subsistema_saude    type zpac_docs-subsistema_saude,
+           numero_seguro       type zpac_docs-numero_seguro,
+           validade_seguro     type zpac_docs-validade_seguro,
+           new_validade_seguro type string,
+           morada_paciente     type zpac_enderecos-morada_paciente,
+           codigo_postal       type zpac_enderecos-codigo_postal,
+           concelho            type zpac_enderecos-concelho,
+           nacionalidade       type zpac_enderecos-nacionalidade,
+           peso                type zpac_infopac-peso,
+           altura              type zpac_infopac-altura,
+           data_inscricao      type zpac_infopac-data_inscricao,
+           new_data_inscricao  type string,
+           ultima_consulta     type zpac_infopac-ultima_consulta,
+           new_ultima_consulta type string,
+           tipo_sangue         type zpac_infopac-tipo_sangue,
+           alergias            type zpac_infopac-alergias,
+           doencas_cronicas    type zpac_infopac-doencas_cronicas,
+           medicacao_atual     type zpac_infopac-medicacao_atual,
+           historico_cirurgico type zpac_infopac-historico_cirurgico,
+           habitos_drogas      type zpac_infopac-habitos_drogas,
+           observacoes         type zpac_infopac-observacoes,
+         end of wa_pdf.
+
+  data: it_pdf type table of wa_pdf, "tabela para receber os dados do pdf
+        ls_pdf type wa_pdf.          "estrutura
+
+  data: lt_rows type lvc_t_row,       "tabela para campos de multiselecao na alv
+        ls_rows like line of lt_rows. "linha de multiselecao
 
 endmodule.
