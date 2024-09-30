@@ -13,6 +13,7 @@ module pai_alv input.
   if sy-dynnr = 103.
 
     case sy-ucomm.
+
       when 'BACK'.
         leave program.
       when 'FCT_PROCURAR'.
@@ -29,6 +30,28 @@ endmodule.
 "--------------------------------------------------------------------------------------------------------------------------
 
 "--------------------------------------------------------------------------------------------------------------------------
+
+form get_data_pdf. "recebe os dados que serao exportados para pdf
+
+  refresh lt_rows.
+  refresh it_pdf.
+  clear ls_pdf.
+  clear ls_rows.
+
+  "metodo para pegar os campos selecionados na alv
+  call method ol_alvgrid->get_selected_rows
+    importing
+      et_index_rows = lt_rows.
+
+  "itera sobre os campos selecionados da alv.
+  loop at lt_rows into ls_rows.
+    read table it_alv_table into ls_alv index ls_rows-index.
+    move-corresponding ls_alv to ls_pdf.
+    append ls_pdf to it_pdf.
+    clear ls_pdf.
+  endloop.
+
+endform.
 
 form set_download.
 
@@ -508,6 +531,12 @@ form build_alv.
 
   "fica a escuta do evento de edicao do alv
   set handler ol_event_handler->handle_data_changed for ol_alvgrid.
+
+  "métodos para inserir botoes na toolbar.
+  set handler ol_event_handler->handle_toolbar for ol_alvgrid.
+
+  "fica a escuta de um clique de botao
+  set handler ol_event_handler->handle_user_command for ol_alvgrid.
 
   "metodo para registar qualquer edição efetuada no alv
   call method ol_alvgrid->register_edit_event
