@@ -20,6 +20,7 @@ class zcl_paciente definition
         data_nascimento     type zpacientes-data_nascimento,
         new_data_nascimento type string,
         estado_civil        type zpacientes-estado_civil,
+        new_estado_civil    type string,
         telefone_principal  type zpac_contactos-telefone_principal,
         telefone_secundario type zpac_contactos-telefone_secundario,
         email_paciente      type zpac_contactos-email_paciente,
@@ -88,27 +89,26 @@ class zcl_paciente definition
       exporting
         !e_result    type zapr_result .
   protected section.
-  private section.
+private section.
 
-    class-methods get_next
-      returning
-        value(id_pct) type zpacientes-id_paciente .
-    class-methods check_paciente
-      importing
-        !id_hsp   type zpacientes-id_hospital
-        !id_pct   type zpacientes-id_paciente
-      exporting
-        !e_result type zapr_result .
-    class-methods get_id
-      importing
-        !nif         type zpac_docs-nif
-      exporting
-        !id_paciente type zpac_docs-id_paciente
-        !id_docs     type zpac_docs-id_documento
-        !id_contacto type zpac_contactos-id_contacto
-        !id_info     type zpac_infopac-id_info_paciente
-        !id_endereco type zpac_enderecos-id_localizacao
-        !e_result    type zapr_result .
+  class-methods GET_NEXT
+    returning
+      value(ID_PCT) type ZPACIENTES-ID_PACIENTE .
+  class-methods CHECK_PACIENTE
+    importing
+      !NIF_PCT type ZPAC_DOCS-NIF
+    exporting
+      !E_RESULT type ZAPR_RESULT .
+  class-methods GET_ID
+    importing
+      !NIF type ZPAC_DOCS-NIF
+    exporting
+      !ID_PACIENTE type ZPAC_DOCS-ID_PACIENTE
+      !ID_DOCS type ZPAC_DOCS-ID_DOCUMENTO
+      !ID_CONTACTO type ZPAC_CONTACTOS-ID_CONTACTO
+      !ID_INFO type ZPAC_INFOPAC-ID_INFO_PACIENTE
+      !ID_ENDERECO type ZPAC_ENDERECOS-ID_LOCALIZACAO
+      !E_RESULT type ZAPR_RESULT .
 ENDCLASS.
 
 
@@ -119,22 +119,16 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
 * <SIGNATURE>---------------------------------------------------------------------------------------+
 * | Static Private Method ZCL_PACIENTE=>CHECK_PACIENTE
 * +-------------------------------------------------------------------------------------------------+
-* | [--->] ID_HSP                         TYPE        ZPACIENTES-ID_HOSPITAL
-* | [--->] ID_PCT                         TYPE        ZPACIENTES-ID_PACIENTE
+* | [--->] NIF_PCT                        TYPE        ZPAC_DOCS-NIF
 * | [<---] E_RESULT                       TYPE        ZAPR_RESULT
 * +--------------------------------------------------------------------------------------</SIGNATURE>
   method check_paciente.
 
-    data id_paciente type zpacientes-id_paciente.
-    data id_hospital type zhospitais-id_hospital.
-
     "verifica se o paciente existe.
-    select single id_paciente
-                  id_hospital
-      from zpacientes
-      into ( id_paciente, id_hospital )
-      where id_paciente eq id_pct
-      and id_hospital eq id_hsp.
+    select single nif
+      from zpac_docs
+      into @data(nifpct)
+      where nif eq @nif_pct.
 
     if sy-subrc ne 0.
       e_result-rc = 1.
@@ -281,8 +275,7 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
     "verifica se o paciente existe
     zcl_paciente=>check_paciente(
       exporting
-        id_hsp   = id_hsp                  " Id do Hospital
-        id_pct   = ls_paciente-id_paciente " Id do Paciente
+        nif_pct  = ls_docs-nif
       importing
         e_result = e_result                " Estrutura de resultados de operações
     ).
@@ -561,8 +554,7 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
     "verifica se o paciente existe
     zcl_paciente=>check_paciente(
       exporting
-        id_hsp   = ls_paciente-id_hospital
-        id_pct   = ls_paciente-id_paciente
+        nif_pct  = ls_docs-nif
       importing
         e_result = e_result
     ).
@@ -661,7 +653,7 @@ CLASS ZCL_PACIENTE IMPLEMENTATION.
 
     if sy-subrc eq 0.
       e_result-rc = sy-subrc.
-      e_result-mensagem = | O Paciente { ls_paciente-nome_paciente }foi cadastrado com sucesso. |.
+      e_result-mensagem = | O Paciente { ls_paciente-nome_paciente } foi cadastrado com sucesso. |.
     else.
       e_result-rc = sy-subrc.
       e_result-mensagem = | Não foi possível cadastrar o Paciente. |.
