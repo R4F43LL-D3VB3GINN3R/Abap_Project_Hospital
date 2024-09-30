@@ -54,7 +54,7 @@ form set_download.
         error_no_gui         = 2
         not_supported_by_gui = 3
         others               = 4.
-      
+
     if lv_xstring is not initial.
       "converte xstring em uma tabela de binario (necessária para download)
       call function 'SCMS_XSTRING_TO_BINARY'
@@ -111,6 +111,9 @@ form get_data_excel.
     message | Carregue os dados de um paciente antes de baixar um arquivo | type 'S' display like 'E'.
     return.
   endif.
+
+  refresh: it_csv.
+  clear lr_data_ref.
 
   it_csv = it_alv_table.
 
