@@ -27,7 +27,11 @@ class zcl_event_handler definition final.
       handle_data_changed
         for event data_changed of cl_gui_alv_grid
         importing
-          er_data_changed.
+          er_data_changed,
+
+      "método para chamar a funcao dos botoes da toolbar
+      handle_user_command for event user_command of cl_gui_alv_grid
+        importing e_ucomm.
 
 endclass.
 
@@ -63,6 +67,15 @@ class zcl_event_handler implementation.
     ls_toolbar-butn_type = 0.
     ls_toolbar-text      = 'Enviar Email'.
     append ls_toolbar to e_object->mt_toolbar.
+
+  endmethod.
+
+  method handle_user_command.
+
+    case e_ucomm.
+      when 'FCT_EXPORT_PDF'.
+        perform get_data_pdf.
+    endcase.
 
   endmethod.
 
