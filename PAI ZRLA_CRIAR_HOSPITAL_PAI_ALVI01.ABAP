@@ -68,7 +68,6 @@ form get_data_pdf. "recebe os dados que serao exportados para pd
         lv_bin_filesize  type i.             " Tamanho do arquivo binário
 
   " First you convert the OTF data
-
   call function 'CONVERT_OTF'
     exporting
       format                = 'PDF'
