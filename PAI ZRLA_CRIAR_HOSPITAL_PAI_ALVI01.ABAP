@@ -51,39 +51,82 @@ form get_data_pdf. "recebe os dados que serao exportados para pd
     clear ls_pdf.
   endloop.
 
-  " Definições para a conversão OTF para PDF
-  data: t_otf  like itcoo occurs 100 with header line,  " Tabela OTF
-        t_pdf  like tline occurs 100 with header line,  " Tabela PDF
-        w_size type i.                                  " Variável para o tamanho do arquivo binário
+  if lt_rows is initial.
+    message | Escolha dados de pacientes para a impressão do documento | type 'S' display like 'E'.
+    return.
+  endif.
 
-  "PONTO DE PARADA!!!
+  perform download_pdf.
 
-  data: lv_bin_file      type xstring,        " Variável para o arquivo binário
-        lv_archive_index type toa_dara,     " Declare a variável do tipo string
-        lt_rows          type table of sy-index, " Para armazenar os índices das linhas selecionadas
-        ls_rows          type sy-index,       " Linha individual
-        lt_otf           type table of itcoo, " Tabela OTF
-        lt_pdf_table     type tlinetab,      " Tabela para os dados PDF
-        pdf_xstring      type xstring,        " XSTRING para o arquivo PDF
-        lv_bin_filesize  type i.             " Tamanho do arquivo binário
+endform.
 
-  " First you convert the OTF data
-  call function 'CONVERT_OTF'
+form download_pdf.
+
+  data:g_val         type c,
+       w_pripar      type pri_params,
+       w_arcpar      type arc_params,
+       i_pdf         type table of tline,
+       spoolid       type tsp01-rqident,
+       l_no_of_bytes type i,
+       l_pdf_spoolid type tsp01-rqident,
+       l_jobname     type tbtcjob-jobname,
+       l_jobcount    type tbtcjob-jobcount.
+
+  call function 'GET_PRINT_PARAMETERS'
     exporting
-      format                = 'PDF'
-      max_linewidth         = 132
+      in_archive_parameters  = w_arcpar
+      in_parameters          = w_pripar
+      layout                 = 'X_65_132'
+      line_count             = 65
+      line_size              = 132
+      no_dialog              = 'X'
     importing
-      bin_filesize          = lv_bin_filesize
-      bin_file              = pdf_xstring
+      out_archive_parameters = w_arcpar
+      out_parameters         = w_pripar
+      valid                  = g_val.
+  if g_val ne space and sy-subrc = 0.
+    w_pripar-prrel = space.
+    w_pripar-primm = space.
+    new-page print on new-section parameters w_pripar archive parameters w_arcpar no dialog.
+  endif.
+  try.
+      cl_salv_table=>factory(
+      exporting
+      list_display = if_salv_c_bool_sap=>false
+      importing
+      r_salv_table = data(it_final_display)
+      changing
+      t_table = it_pdf "Your internal table where data is available
+      ).
+    catch cx_salv_msg.
+  endtry.
+
+  it_final_display->display( ).
+  new-page print off.
+  call function 'ABAP4_COMMIT_WORK'.
+  spoolid = sy-spono.
+  call function 'CONVERT_ABAPSPOOLJOB_2_PDF'
+    exporting
+      src_spoolid   = spoolid
+      no_dialog     = ' '
+    importing
+      pdf_bytecount = l_no_of_bytes
+      pdf_spoolid   = l_pdf_spoolid
+      btc_jobname   = l_jobname
+      btc_jobcount  = l_jobcount
     tables
-      otf                   = lt_otf
-      lines                 = lt_pdf_table
-    exceptions
-      err_max_linewidth     = 1
-      err_format            = 2
-      err_conv_not_possible = 3
-      err_bad_otf           = 4
-      others                = 5.
+      pdf           = i_pdf.
+
+  call function 'GUI_DOWNLOAD'
+    exporting
+      filename = 'C:\Users\RafaelAlbuquerque\Desktop\Rafael\docpdf.pdf' "Give the pdf location of your system where you want to store
+      filetype = 'BIN'
+    tables
+      data_tab = i_pdf.
+
+   clear i_pdf.
+   clear it_pdf.
+   clear lt_rows.
 
 endform.
 
