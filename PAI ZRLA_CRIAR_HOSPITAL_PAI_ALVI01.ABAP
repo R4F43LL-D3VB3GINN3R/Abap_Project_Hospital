@@ -22,11 +22,186 @@ module pai_alv input.
       when 'FCT_DOWNLOAD'.
         perform get_data_excel. "preenche a tabela do excel
         perform set_download.   "download do arquivo excel
+      when 'FCT_EMAIL'.
+        perform get_data_hosp_html. "pega os dados da consulta em html.
     endcase.
 
   endif.
 
 endmodule.
+"--------------------------------------------------------------------------------------------------------------------------
+
+"--------------------------------------------------------------------------------------------------------------------------
+
+form get_data_hosp_html.
+
+  data: it_html type table of ol_paciente->wa_pct.
+
+  it_html = it_alv_table.
+
+  " Declaração de variáveis para armazenar os cabeçalhos e campos do HTML
+  data: t_header type standard table of w3head with header line,
+        t_fields type standard table of w3fields with header line.
+
+  " Declaração de variáveis de trabalho para cabeçalho
+  data: wa_header type w3head,
+        w_head    type w3head.
+
+  " Declaração de variáveis para a tabela interna e HTML
+  data:
+    t_html  type standard table of w3html,  " Tabela interna para armazenar o HTML gerado
+    lt_fcat type lvc_t_fcat with header line.  " Tabela interna para o catálogo de campos (field catalog)
+
+  "itera sobre a tabela
+  loop at it_fieldcat into ls_fieldcat.
+
+    w_head-text = lt_fcat-coltext.
+
+    " Função para popular o cabeçalho do HTML
+    call function 'WWW_ITAB_TO_HTML_HEADERS'
+      exporting
+        field_nr = sy-tabix
+        text     = w_head-text
+        fgcolor  = 'black'
+        bgcolor  = 'white'
+      tables
+        header   = t_header.
+
+    " Função para popular as propriedades das colunas do HTML
+    call function 'WWW_ITAB_TO_HTML_LAYOUT'
+      exporting
+        field_nr = sy-tabix
+        size     = '3'
+        fgcolor  = 'black'
+        bgcolor  = 'white'
+      tables
+        fields   = t_fields.
+
+   endloop.
+
+    " Configuração do título do relatório
+      wa_header-text = 'report'.
+      wa_header-font = 'Arial'.
+      wa_header-size = '2'.
+
+      " Preparação do HTML a partir da tabela interna
+      refresh t_html.
+      call function 'WWW_ITAB_TO_HTML'
+        exporting
+          table_header = wa_header
+        tables
+          html         = t_html
+          fields       = t_fields
+          row_header   = t_header
+          itable       = it_html.
+
+        data: html_text type string.
+
+        loop at t_html into data(ls_html).
+          concatenate html_text ls_html into html_text.
+        endloop.
+
+        perform send_email_hosp using html_text.
+
+endform.
+
+"--------------------------------------------------------------------------------------------------------------------------
+
+"--------------------------------------------------------------------------------------------------------------------------
+
+form send_email_hosp using html_text.
+
+  data: id_hosp type zpacientes-id_hospital. "recebe o id do hospital
+
+  "procura o id do hospital
+  loop at it_alv_table into data(ls_alv_t).
+    id_hosp = ls_alv_t-id_hospital.
+  endloop.
+
+  "procura o nome do hospital
+  select single nome_hospital
+    from zhospitais
+    into @data(nomehosp)
+    where id_hospital eq @id_hosp.
+
+  if sy-subrc ne 0.
+    message | Nenhuma chave encontrada relacionada ao hospital | type 'S' display like 'E'.
+  endif.
+
+  "tratmento da string de endereço de email
+  data: hospname type c length 241.
+  hospname = nomehosp.
+  data: p_email type ad_smtpadr.
+  p_email = hospname.
+  condense p_email no-gaps.
+  concatenate sy-uname '@' p_email '.PT' into p_email.
+
+  constants: lc_priority    type bcs_docimp value '1',
+             lc_template_id type smtg_tmpl_id value 'ZRLA_TEMPLATE_EMAIL'. "template do email
+
+  if html_text is initial.
+    message | Não foi possível exportar os dados em HTML | type 'S' display like 'E'.
+  endif.
+
+  data(lo_email_api_ref)    = cl_smtg_email_api=>get_instance( iv_template_id = lc_template_id ).
+  data(lo_send_request_ref) = cl_bcs=>create_persistent( ).
+  data(i_cds_key)           = value if_smtg_email_template=>ty_gt_data_key( ).
+
+  lo_email_api_ref->render( exporting
+                              iv_language  = sy-langu
+                              it_data_key  = i_cds_key
+                            importing
+                              ev_subject   = data(lv_subject)
+                              ev_body_html = data(lv_body_html) ).
+
+  lv_body_html = html_text.
+
+  data(lv_body_html_soli) = cl_bcs_convert=>string_to_soli( lv_body_html ).
+  data(lo_multipart_ref) = new cl_gbt_multirelated_service( ).
+
+  lo_multipart_ref->set_main_html(
+      exporting
+        content     = lv_body_html_soli
+        description = 'Dados dos Pacientes' ).
+
+  "substitui o html inicial pelo novo html tratado
+  data(lo_doc_bcs_ref) = cl_document_bcs=>create_from_multirelated(
+          exporting
+            i_subject          = conv so_obj_des( lv_subject )
+            i_importance       = lc_priority
+            i_multirel_service = lo_multipart_ref ).
+
+  lo_send_request_ref->set_document( lo_doc_bcs_ref  ).
+
+  "insere o nome do remetente
+  data(lo_sender_ref) = cl_sapuser_bcs=>create( sy-uname ).
+  if lo_sender_ref is bound.
+    lo_send_request_ref->set_sender( i_sender = lo_sender_ref ).
+  endif.
+
+  data(lo_recipient_ref) = cl_cam_address_bcs=>create_internet_address( p_email ).
+
+  if lo_recipient_ref is bound.
+
+    "adiciona o conteúdo à requisição
+    lo_send_request_ref->add_recipient(
+      exporting
+        i_recipient = lo_recipient_ref
+        i_express   = abap_true ).
+
+  endif.
+
+  "envia o email
+  data(lv_sent_to_all) = lo_send_request_ref->send( ).
+
+  "se o email for enviado, confirma a ação
+  if lv_sent_to_all = abap_true.
+    commit work and wait.
+    message | Email enviado com sucesso | type 'S'.
+  endif.
+
+endform.
+
 "--------------------------------------------------------------------------------------------------------------------------
 
 "--------------------------------------------------------------------------------------------------------------------------
@@ -96,7 +271,7 @@ form download_pdf.
       importing
       r_salv_table = data(it_final_display)
       changing
-      t_table = it_pdf "Your internal table where data is available
+      t_table = it_pdf
       ).
     catch cx_salv_msg.
   endtry.
@@ -124,9 +299,10 @@ form download_pdf.
     tables
       data_tab = i_pdf.
 
-   clear i_pdf.
-   clear it_pdf.
-   clear lt_rows.
+  clear i_pdf.
+  clear it_pdf.
+  clear lt_rows.
+  free it_final_display.
 
 endform.
 
@@ -257,77 +433,77 @@ form handle_data_changed using ir_data_changed type ref to cl_alv_changed_data_p
       into ls_cell_inf
       where id_paciente eq ls_pct103-id_paciente.
 
-    "pega o nome do paciente
-    select single nome_paciente
-      from zpacientes
-      into lv_nome_cell
-      where id_paciente eq ls_pct103-id_paciente.
+      "pega o nome do paciente
+      select single nome_paciente
+        from zpacientes
+        into lv_nome_cell
+        where id_paciente eq ls_pct103-id_paciente.
 
-    "verifica qual celula foi editada do alv
-    "sendo ela estidada, trocamos o valor dela na estrutura
-    "ativamos nossa flag
-    case ls_mod_cell-fieldname.
-      when 'ALERGIAS'.
-        ls_cell_inf-alergias = ls_mod_cell-value.
-        flag_update = abap_true.
-      when 'DOENCAS_CRONICAS'.
-        ls_cell_inf-doencas_cronicas = ls_mod_cell-value.
-        flag_update = abap_true.
-      when 'MEDICACAO_ATUAL'.
-        ls_cell_inf-medicacao_atual = ls_mod_cell-value.
-        flag_update = abap_true.
-      when 'HISTORICO_CIRURGICO'.
-        ls_cell_inf-historico_cirurgico = ls_mod_cell-value.
-        flag_update = abap_true.
-      when 'HABITOS_DROGAS'.
-        ls_cell_inf-habitos_drogas = ls_mod_cell-value.
-        flag_update = abap_true.
-      when 'OBSERVACOES'.
-        ls_cell_inf-observacoes = ls_mod_cell-value.
-        flag_update = abap_true.
-    endcase.
+        "verifica qual celula foi editada do alv
+        "sendo ela estidada, trocamos o valor dela na estrutura
+        "ativamos nossa flag
+        case ls_mod_cell-fieldname.
+          when 'ALERGIAS'.
+            ls_cell_inf-alergias = ls_mod_cell-value.
+            flag_update = abap_true.
+          when 'DOENCAS_CRONICAS'.
+            ls_cell_inf-doencas_cronicas = ls_mod_cell-value.
+            flag_update = abap_true.
+          when 'MEDICACAO_ATUAL'.
+            ls_cell_inf-medicacao_atual = ls_mod_cell-value.
+            flag_update = abap_true.
+          when 'HISTORICO_CIRURGICO'.
+            ls_cell_inf-historico_cirurgico = ls_mod_cell-value.
+            flag_update = abap_true.
+          when 'HABITOS_DROGAS'.
+            ls_cell_inf-habitos_drogas = ls_mod_cell-value.
+            flag_update = abap_true.
+          when 'OBSERVACOES'.
+            ls_cell_inf-observacoes = ls_mod_cell-value.
+            flag_update = abap_true.
+        endcase.
 
-    "se houve alteracao...
-    if flag_update eq abap_true.
+        "se houve alteracao...
+        if flag_update eq abap_true.
 
-      ls_cell_inf-alterado_por = sy-uname.
-      ls_cell_inf-data_alteracao = sy-datum.
+          ls_cell_inf-alterado_por = sy-uname.
+          ls_cell_inf-data_alteracao = sy-datum.
 
-      update zpac_infopac from ls_cell_inf. "atualiza a tabela de informacoes
+          update zpac_infopac from ls_cell_inf. "atualiza a tabela de informacoes
 
-      if sy-subrc ne 0.
-        message | Não foi possível alterar as informações na célula | type 'S' display like 'E'.
-        return.
-      endif.
+          if sy-subrc ne 0.
+            message | Não foi possível alterar as informações na célula | type 'S' display like 'E'.
+            return.
+          endif.
 
-      "instancia e objeto da classe de mensagens
-      data: ol_msg type ref to zcl_mensagens.
-      create object ol_msg.
+          "instancia e objeto da classe de mensagens
+          data: ol_msg type ref to zcl_mensagens.
+          create object ol_msg.
 
-      result_103-rc = 0.
-      result_103-mensagem = | Alterações em: [{ ls_mod_cell-fieldname }] do Paciente' { lv_nome_cell } |.
+          result_103-rc = 0.
+          result_103-mensagem = | Alterações em: [{ ls_mod_cell-fieldname }] do Paciente' { lv_nome_cell } |.
 
-      "alimenta o historico
-      ol_msg->set_msg(
-        exporting
-          id_pct   = ls_pct103-id_paciente      " ID do Paciente
-          mensagem = result_103-mensagem        " Mensagem
-      ).
+          "alimenta o historico
+          ol_msg->set_msg(
+            exporting
+              id_pct   = ls_pct103-id_paciente      " ID do Paciente
+              mensagem = result_103-mensagem        " Mensagem
+          ).
 
-      flag_update = abap_false. "desativa a flag.
+          flag_update = abap_false. "desativa a flag.
 
-      if result_p-rc ne 0.
-        message result_103-mensagem type 'S' display like 'E'.
-      else.
-        message result_103-mensagem type 'S'.
-      endif.
+          if result_p-rc ne 0.
+            message result_103-mensagem type 'S' display like 'E'.
+          else.
+            message result_103-mensagem type 'S'.
+          endif.
 
-    endif.
+        endif.
 
-    clear: ls_cell_inf, lv_nome_cell.
-    free ol_msg.
+        clear: ls_cell_inf, lv_nome_cell.
+        free ol_msg.
 
-  endloop.
+      endloop.
 
 endform.
 
@@ -426,23 +602,23 @@ form get_data_hst.
     into table it_hst_alv
     where id_paciente eq ls_alv-id_paciente.
 
-  "itera sobre a tabela para pegar a data e hora
-  loop at it_hst_alv into ls_hst_alv.
+    "itera sobre a tabela para pegar a data e hora
+    loop at it_hst_alv into ls_hst_alv.
 
-    "funcao para tratamento de data e hora.
-    call function 'RFC_FORMAT_TIME'
-      exporting
-        time        = ls_hst_alv-data_msg
-        hour        = ls_hst_alv-hora_msg
-      importing
-        time_output = ls_hst_alv-new_date
-        hour_output = ls_hst_alv-new_hour.
+      "funcao para tratamento de data e hora.
+      call function 'RFC_FORMAT_TIME'
+        exporting
+          time        = ls_hst_alv-data_msg
+          hour        = ls_hst_alv-hora_msg
+        importing
+          time_output = ls_hst_alv-new_date
+          hour_output = ls_hst_alv-new_hour.
 
-    modify it_hst_alv from ls_hst_alv. "atualiza a estrutura
+      modify it_hst_alv from ls_hst_alv. "atualiza a estrutura
 
-  endloop.
+    endloop.
 
-  sort it_hst_alv by data_msg descending hora_msg descending. "ordena por ordem cronologica
+    sort it_hst_alv by data_msg descending hora_msg descending. "ordena por ordem cronologica
 
 endform.
 
@@ -462,64 +638,64 @@ form get_data_alv.
     into table @it_paciente103
     where id_hospital eq @in_001.
 
-  sort it_paciente103 by id_paciente ascending. "organiza a tabela por id.
+    sort it_paciente103 by id_paciente ascending. "organiza a tabela por id.
 
-  "itera sobre a tabela populada
-  loop at it_paciente103 into data(ls_paciente103).
+    "itera sobre a tabela populada
+    loop at it_paciente103 into data(ls_paciente103).
 
-    "cria um objeto relacionado ao id do paciente enviado
-    create object ol_paciente
-      exporting
-        id_paciente = ls_paciente103-id_paciente. " Id do Paciente
+      "cria um objeto relacionado ao id do paciente enviado
+      create object ol_paciente
+        exporting
+          id_paciente = ls_paciente103-id_paciente. " Id do Paciente
 
-    ls_alv = ol_paciente->ls_pct.  "preenche a estrutura com o objeto do paciente
+      ls_alv = ol_paciente->ls_pct.  "preenche a estrutura com o objeto do paciente
 
-    "funcao para tratamento de data e hora.
-    call function 'RFC_FORMAT_TIME'
-      exporting
-        time        = ls_alv-data_inscricao
-      importing
-        time_output = ls_alv-new_data_inscricao.
+      "funcao para tratamento de data e hora.
+      call function 'RFC_FORMAT_TIME'
+        exporting
+          time        = ls_alv-data_inscricao
+        importing
+          time_output = ls_alv-new_data_inscricao.
 
-    "funcao para tratamento de data e hora.
-    call function 'RFC_FORMAT_TIME'
-      exporting
-        time        = ls_alv-data_nascimento
-      importing
-        time_output = ls_alv-new_data_nascimento.
+      "funcao para tratamento de data e hora.
+      call function 'RFC_FORMAT_TIME'
+        exporting
+          time        = ls_alv-data_nascimento
+        importing
+          time_output = ls_alv-new_data_nascimento.
 
-    "funcao para tratamento de data e hora.
-    call function 'RFC_FORMAT_TIME'
-      exporting
-        time        = ls_alv-validade_seguro
-      importing
-        time_output = ls_alv-new_validade_seguro.
+      "funcao para tratamento de data e hora.
+      call function 'RFC_FORMAT_TIME'
+        exporting
+          time        = ls_alv-validade_seguro
+        importing
+          time_output = ls_alv-new_validade_seguro.
 
-    "funcao para tratamento de data e hora.
-    call function 'RFC_FORMAT_TIME'
-      exporting
-        time        = ls_alv-ultima_consulta
-      importing
-        time_output = ls_alv-new_ultima_consulta.
+      "funcao para tratamento de data e hora.
+      call function 'RFC_FORMAT_TIME'
+        exporting
+          time        = ls_alv-ultima_consulta
+        importing
+          time_output = ls_alv-new_ultima_consulta.
 
-    "tratamento do campo de estado civil
-    case ls_alv-estado_civil.
-      when 1.
-        ls_alv-new_estado_civil = 'Solteiro'.
-      when 2.
-        ls_alv-new_estado_civil = 'União Estável'.
-      when 3.
-        ls_alv-new_estado_civil = 'Casado'.
-      when 4.
-        ls_alv-new_estado_civil = 'Viúvo'.
-    endcase.
+      "tratamento do campo de estado civil
+      case ls_alv-estado_civil.
+        when 1.
+          ls_alv-new_estado_civil = 'Solteiro'.
+        when 2.
+          ls_alv-new_estado_civil = 'União Estável'.
+        when 3.
+          ls_alv-new_estado_civil = 'Casado'.
+        when 4.
+          ls_alv-new_estado_civil = 'Viúvo'.
+      endcase.
 
-    append ls_alv to it_alv_table. "insere o paciente na tabela
+      append ls_alv to it_alv_table. "insere o paciente na tabela
 
-    clear ls_alv.
-    free ol_paciente.
+      clear ls_alv.
+      free ol_paciente.
 
-  endloop.
+    endloop.
 
 endform.
 
@@ -535,29 +711,29 @@ form fill_dropdown_alv.
   select * from zhospitais
     into corresponding fields of table it_ddown.
 
-  if sy-subrc eq 0.
+    if sy-subrc eq 0.
 
-    sort it_ddown by id_hospital. "ordena por id
+      sort it_ddown by id_hospital. "ordena por id
 
-    data: id_char type char10. "id em char
+      data: id_char type char10. "id em char
 
-    "passa os dados da tabela para a tabela da dropdown
-    loop at it_ddown into ls_ddown.
-      clear ls_list.
-      id_char = ls_ddown-id_hospital.
-      ls_dropdown_alv-key = id_char.
-      ls_dropdown_alv-text = ls_ddown-nome_hospital.
-      append ls_dropdown_alv to it_dropdown_alv.
-      clear ls_ddown.
-    endloop.
+      "passa os dados da tabela para a tabela da dropdown
+      loop at it_ddown into ls_ddown.
+        clear ls_list.
+        id_char = ls_ddown-id_hospital.
+        ls_dropdown_alv-key = id_char.
+        ls_dropdown_alv-text = ls_ddown-nome_hospital.
+        append ls_dropdown_alv to it_dropdown_alv.
+        clear ls_ddown.
+      endloop.
 
-    "chama a funcao que preenche a dropdown
-    call function 'VRM_SET_VALUES'
-      exporting
-        id     = 'IN_001'
-        values = it_dropdown_alv.
+      "chama a funcao que preenche a dropdown
+      call function 'VRM_SET_VALUES'
+        exporting
+          id     = 'IN_001'
+          values = it_dropdown_alv.
 
-  endif.
+    endif.
 
 endform.
 
