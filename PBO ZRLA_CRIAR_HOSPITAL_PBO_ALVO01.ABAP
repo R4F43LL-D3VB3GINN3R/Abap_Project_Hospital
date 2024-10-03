@@ -134,4 +134,16 @@ module pbo_alv output.
   data: lt_rows type lvc_t_row,       "tabela para campos de multiselecao na alv
         ls_rows like line of lt_rows. "linha de multiselecao
 
+  "-----------------------------------------------------------------------------
+  "VARIÁVEIS PARA ENVIO DE EMAIL
+
+  data: it_mail type table of wa_pdf, "tabela para receber os dados do pdf
+        ls_mail type wa_pdf.          "estrutura
+
+  data: it_hist_pct type table of zhistorico_pct, "tabela de historico de paciente
+        ls_hist_pct type zhistorico_pct.          "estrutura de historico de paciente
+
+  data: lt_rows2 type lvc_t_row,       "tabela para campos de multiselecao na alv
+        ls_rows2 like line of lt_rows. "linha de multiselecao
+
 endmodule.
