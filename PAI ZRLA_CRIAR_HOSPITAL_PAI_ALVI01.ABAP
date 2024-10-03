@@ -33,6 +33,60 @@ endmodule.
 
 "--------------------------------------------------------------------------------------------------------------------------
 
+form get_data_mail_pct.
+
+  refresh lt_rows2.
+  refresh it_hist_pct.
+
+  "metodo para pegar os campos selecionados na alv
+  call method ol_alvgrid->get_selected_rows
+    importing
+      et_index_rows = lt_rows2.
+
+  "itera sobre os campos selecionados da alv.
+  loop at lt_rows2 into ls_rows2.
+    read table it_alv_table into ls_alv index ls_rows2-index.
+    move-corresponding ls_alv to ls_mail.
+    append ls_mail to it_mail.
+    clear ls_mail.
+  endloop.
+
+  "verifica se alguma linha foi selecionada
+  if lt_rows2 is initial.
+    message | Escolha dados de pacientes para a impressão do documento | type 'S' display like 'E'.
+    return.
+  endif.
+
+  "itera sobre os campos selecionados da alv.
+  loop at lt_rows2 into ls_rows2.
+    read table it_hst_alv into ls_hst_alv index ls_rows2-index.
+    move-corresponding ls_hst_alv to ls_hist_pct.
+    append ls_hist_pct to it_hist_pct.
+  endloop.
+
+  "verifica se o historico foi carregado
+  if it_hst_alv is initial.
+    message | Carregue o histórico do paciente para envio | type 'S' display like 'E'.
+    return.
+  endif.
+
+  "verifica se mais de uma linha foi selecionada
+  if lines( it_hist_pct ) > 1.
+    message | Escolha apenas um paciente para emitir os emails de informações | type 'S' display like 'E'.
+    return.
+  endif.
+
+  "utilizar um perform duas vezes usando o que for necessario para enviar dois emails...
+  "sendo um para a tabela do paciente e outro para o seu historico.
+
+*  perform send_mail_pct using qualquer coisa... <------------------- perform a fazer.
+
+endform.
+
+"--------------------------------------------------------------------------------------------------------------------------
+
+"--------------------------------------------------------------------------------------------------------------------------
+
 form get_data_hosp_html.
 
   data: it_html type table of ol_paciente->wa_pct.
@@ -98,10 +152,10 @@ form get_data_hosp_html.
         data: html_text type string.
 
         loop at t_html into data(ls_html).
-          concatenate html_text ls_html into html_text.
+          concatenate html_text ls_html into html_text. "concatena a string da tabela formatada em html
         endloop.
 
-        perform send_email_hosp using html_text.
+        perform send_email_hosp using html_text. "envia o email
 
 endform.
 
