@@ -137,13 +137,31 @@ module pbo_alv output.
   "-----------------------------------------------------------------------------
   "VARIÁVEIS PARA ENVIO DE EMAIL
 
-  data: it_mail type table of wa_pdf, "tabela para receber os dados do pdf
-        ls_mail type wa_pdf.          "estrutura
+  data: it_mail type standard table of wa_pdf, "tabela para receber os dados do pdf
+        ls_mail type wa_pdf.                   "estrutura
 
   data: it_hist_pct type table of zhistorico_pct, "tabela de historico de paciente
         ls_hist_pct type zhistorico_pct.          "estrutura de historico de paciente
 
   data: lt_rows2 type lvc_t_row,       "tabela para campos de multiselecao na alv
         ls_rows2 like line of lt_rows. "linha de multiselecao
+
+  data: lt_rows3 type lvc_t_row,       "tabela para campos de multiselecao na alv
+        ls_rows3 like line of lt_rows. "linha de multiselecao
+
+  " Declaração de variáveis para armazenar os cabeçalhos e campos do HTML
+  data: t_header type standard table of w3head with header line,
+        t_fields type standard table of w3fields with header line.
+
+  " Declaração de variáveis de trabalho para cabeçalho
+  data: wa_header type w3head,
+        w_head    type w3head.
+
+  " Declaração de variáveis para a tabela interna e HTML
+  data:
+    t_html  type standard table of w3html,  " Tabela interna para armazenar o HTML gerado
+    lt_fcat type lvc_t_fcat with header line.  " Tabela interna para o catálogo de campos (field catalog)
+
+   data: html_text type string. "texto a ser enviado por email
 
 endmodule.
