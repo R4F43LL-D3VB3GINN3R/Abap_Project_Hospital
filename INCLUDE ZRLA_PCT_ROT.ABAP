@@ -7,7 +7,7 @@
 *       text
 *----------------------------------------------------------------------*
 
-module pai_alv input.
+module pai_alv input . 
 
   "se estiver na tela 103...
   if sy-dynnr = 103.
