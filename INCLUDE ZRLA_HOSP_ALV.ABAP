@@ -5,7 +5,7 @@ form build_alv_columns.
 
   "funcoes
     lo_alv_functions = lo_alv->get_functions( ).
-    lo_alv_functions->set_all( abap_true ).
+    lo_alv_functions->set_all( abap_true ) .
 
     "opcoes de display
     lo_alv_display = lo_alv->get_display_settings( ).
