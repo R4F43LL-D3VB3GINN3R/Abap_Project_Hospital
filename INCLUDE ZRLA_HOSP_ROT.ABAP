@@ -7,7 +7,7 @@
 
 form field_validations.
 
-  "se o nif nao tiver 9 digitos...
+  "se o nif nao tiver 9 digitos... 
   if strlen( p_nifh ) ne 9.
     return_validation-rc = 1.
     return_validation-mensagem = | O campo NIF deve respeitar a quantidade de 9 dígitos. |.
