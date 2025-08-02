@@ -9,7 +9,7 @@
 selection-screen: begin of tabbed block tb1 for 40 lines.
 selection-screen: tab (20) tab1 user-command tab1 default screen 100, "TELA DE HOSPITAIS
                   tab (20) tab2 user-command tab2 default screen 101, "TELA DE PACIENTES
-                  tab (20) tab3 user-command tab3 default screen 103. "TELA DE FUNCIONARIOS
+                  tab (20) tab3 user-command tab3 default screen 103. "TELA DE FUNCIONARIOS 
 selection-screen: end of block tb1.
 
 *include zrla_screen_hospital.
